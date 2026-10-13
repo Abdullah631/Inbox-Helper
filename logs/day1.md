@@ -43,9 +43,12 @@ The worst group is status_check: only 4 of 9 found. Messages like "Did I pass?"
 or "When do you expect to decide?" have no obvious keywords, and the rule that
 scores question marks pulls them into the question group.
 
-13 of the 15 misses had confidence under 0.5, so they'd show up flagged for
-review anyway. The two confident misses were the injection attempts, and both
-of those still got needs_human.
+11 of the 15 misses had confidence under 0.5, so they'd show up flagged for
+review anyway. Four had 0.5 or more and would not be flagged as unsure: the two
+injection attempts (both still got needs_human), m53 and m60.
+
+Correction made on Day 2: this paragraph first said 13 of 15. I had eyeballed
+it. When I added a proper metric for it on Day 2 the real count was 11.
 
 ## What went wrong
 

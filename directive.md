@@ -47,6 +47,14 @@ session. I'll keep editing it through the week; git history has every version.
 
 - Prompts live in `prompts/<name>.v<N>.md`. Don't edit an old version, add a new one.
 - Every prompt version's eval score goes in that day's log.
+- Run every prompt at least 3 times before comparing it to another one. On Day 2
+  the same prompt scored 96.7% and then 91.7%. One run is noise.
+- Accuracy isn't the main number. Report "confident mistakes" too: wrong answers
+  that would skip review. That's what actually hurts a recruiter.
+- The newest prompt isn't automatically the one in use. `ACTIVE_PROMPTS` in
+  `lib/prompts.ts` decides, and changing it needs eval numbers behind it.
+- Don't trust model names from memory. Check the provider's model list first.
+  On Day 2 the default model I was given had been retired.
 
 ## Writing docs and logs
 

@@ -41,6 +41,12 @@ describe("evaluate", () => {
     expect(q).toMatchObject({ precision: 0.5, recall: 1, support: 1 });
     expect(r.confusion.scheduling.question).toBe(1);
   });
+
+  it("counts only mistakes that would skip review as confident mistakes", () => {
+    const data = ["1", "2", "3"].map((id) => ({ ...m(id), expected_intent: "scheduling" as const, label_source: "human" as const }));
+    const r = evaluate(data, [c("1", "question", 0.9), c("2", "question", 0.5), c("3", "question", 0.49)]);
+    expect(r.confidentMistakes).toBe(2);
+  });
 });
 
 describe("sample dataset", () => {

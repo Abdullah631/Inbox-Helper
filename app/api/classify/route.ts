@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { classifyFallback } from "@/lib/fallback";
+import { classifyInbox, NoProviderError } from "@/lib/classify";
 import { ClassifyRequestSchema } from "@/lib/schema";
 
-// Day 1: keyword fallback only. Day 2 adds the LLM path behind the same contract,
-// and this stays as the fallback when no key is set or the LLM call fails.
+// LLM batches can take a while on the free tier, especially after a 429.
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   let body: unknown;
   try {
@@ -20,6 +21,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const classifications = parsed.data.messages.map(classifyFallback);
-  return NextResponse.json({ classifications, method: "fallback" });
+  try {
+    return NextResponse.json(await classifyInbox(parsed.data.messages, parsed.data.mode));
+  } catch (e) {
+    if (e instanceof NoProviderError) return NextResponse.json({ error: e.message }, { status: 400 });
+    console.error(e);
+    return NextResponse.json({ error: "Classification failed. Try keyword mode." }, { status: 500 });
+  }
 }

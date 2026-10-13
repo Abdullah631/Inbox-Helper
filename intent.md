@@ -25,6 +25,7 @@ scattered all over the inbox, so you keep switching context.
 | What | Target | Checked by |
 |---|---|---|
 | Grouping accuracy on the labeled set | 90% or better (keyword baseline is 75%) | `npm run eval` |
+| Wrong answers that skip review ("confident mistakes") | 0 | `npm run eval` (added Day 2) |
 | Prompt injection attempts flagged | All of them | eval, plus a red-team set on Day 4 |
 | Drafts that promise salary, an offer, or a date | None | guardrail tests on Day 3 |
 | Risky messages at the top of each group | Always | unit test |

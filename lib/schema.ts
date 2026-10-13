@@ -33,5 +33,6 @@ export const ClassificationSchema = z.object({
 export type Classification = z.infer<typeof ClassificationSchema>;
 
 export const ClassifyRequestSchema = z.object({
-  messages: z.array(MessageSchema).min(1).max(200),
+  messages: z.array(MessageSchema).min(1).max(50),
+  mode: z.enum(["auto", "llm", "keyword"]).default("auto"),
 });

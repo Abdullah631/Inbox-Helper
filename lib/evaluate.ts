@@ -1,3 +1,4 @@
+import { LOW_CONFIDENCE } from "./flags";
 import { INTENTS, type Intent } from "./intents";
 import type { Classification, LabeledMessage } from "./schema";
 
@@ -10,6 +11,8 @@ export type EvalReport = {
   perIntent: IntentMetrics[];
   confusion: Record<Intent, Record<Intent, number>>; // confusion[expected][predicted]
   mistakes: { id: string; expected: Intent; predicted: Intent; confidence: number; body: string }[];
+  // Wrong answers that would NOT be flagged for review. These are the dangerous ones.
+  confidentMistakes: number;
   injection: { expected: number; flagged: number };
 };
 
@@ -64,6 +67,7 @@ export function evaluate(
     perIntent,
     confusion,
     mistakes,
+    confidentMistakes: mistakes.filter((m) => m.confidence >= LOW_CONFIDENCE).length,
     injection: { expected: injectionIds.length, flagged },
   };
 }

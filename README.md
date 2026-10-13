@@ -18,19 +18,27 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000, click "Load sample inbox", then "Group messages".
+Open http://localhost:3000, click "Load sample", then "Sort messages".
 
 It works without an API key. In that case it uses a simple keyword classifier.
+
+To use the AI classifier, copy `.env.example` to `.env.local` and add a free
+Groq key (console.groq.com). A Gemini key works too. Then pick "Auto" or "AI"
+in the Classifier switch.
 
 ## Tests and evals
 
 ```bash
-npm test            # unit tests
+npm test                                # unit tests, no network needed
 npm run typecheck
-npm run eval        # scores the classifier against the labeled sample set
+npm run eval                            # keyword classifier vs. the labeled sample set
+npm run eval -- --llm                   # LLM with the active prompt (needs a key)
+npm run eval -- --llm --prompt v2       # LLM with a specific prompt version
 ```
 
-Every eval run is saved to `evals/results/` so I can compare runs from day to day.
+Every run is saved to `evals/results/` and gets one line in `evals/history.csv`.
+Besides accuracy it reports "confident mistakes": wrong answers with confidence
+of 0.5 or more, which would not get flagged for review.
 
 ## What you can paste in
 
@@ -54,8 +62,10 @@ Each message can also get flags:
 ## Project layout
 
 ```
-app/            the page and the /api/classify route
-lib/            the logic: schema, intents, keyword classifier, parser, grouping, scoring
+app/            the page, /api/classify and /api/config
+components/     header, theme toggle, segmented control, message card
+lib/            the logic: schema, intents, flags, keyword and LLM classifiers, parser, grouping, scoring
+prompts/        classify.v1.md, classify.v2.md (never edited once used)
 data/           sample-inbox.json, 60 labeled messages
 scripts/        run-eval.ts
 evals/results/  saved eval runs
@@ -67,18 +77,29 @@ logs/           one log per day
 
 1. Push the repo to GitHub.
 2. On vercel.com, choose Add New Project, import the repo and deploy. The defaults work.
-3. From Day 2, add `GROQ_API_KEY` in Settings, Environment Variables.
+3. Add `GROQ_API_KEY` in Settings, Environment Variables, then redeploy. Without
+   it the live site runs in keyword mode.
 
 Live URL: not deployed yet.
 
 ## Where it stands
 
-Day 1: the keyword classifier gets 45 of 60 right (75%) and flags both injection
-attempts. The labels were drafted by AI and I haven't checked them all yet, so
-treat that number with some suspicion.
+| | Accuracy | Confident mistakes | Notes |
+|---|---|---|---|
+| Keywords (Day 1) | 75% | 4 | Wrong often, but usually unsure when wrong |
+| LLM, prompt v1 (Day 2, active) | 94.4% mean of 3 runs | 3 every run | gpt-oss-120b on Groq |
+| LLM, prompt v2 (Day 2) | 94.4% mean of 3 runs | 2 to 5 | More variance, not adopted |
+
+The labels were drafted by AI and I haven't checked them all yet, so treat these
+numbers with some suspicion. They're also all on the same 60 messages.
 
 Known gaps:
 
-- The keyword rules only understand English, so the Spanish message (m56) is misclassified.
-- One message gets one group. m53 asks two things and only one of them gets picked up.
+- The LLM is sometimes confidently wrong, so its confidence alone can't decide
+  what skips review. This is the open problem going into Day 3.
+- Free tier rate limits can push a request past Vercel's 60 second limit on a
+  big inbox. Not load tested yet.
+- The keyword rules only understand English, so the Spanish message (m56) is
+  misclassified in keyword mode.
+- One message gets one group. m53 asks two things and only one gets picked up.
 - No thread context. "Ok that works for me" can't be placed without knowing what came before it.

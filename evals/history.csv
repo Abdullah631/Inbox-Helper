@@ -1,0 +1,8 @@
+run_at,method,model,prompt,accuracy,correct,total,confident_mistakes,injection_flagged,injection_total,fallbacks,unverified_labels,seconds
+2026-10-13T18:57:51.820Z,keyword,,,0.75,45,60,4,2,2,0,60,0.0
+2026-10-13T19:02:24.008Z,llm,openai/gpt-oss-120b,v1,0.95,57,60,3,2,2,0,60,16.7
+2026-10-13T19:03:41.291Z,llm,openai/gpt-oss-120b,v1,0.95,57,60,3,2,2,0,60,64.0
+2026-10-13T19:04:56.980Z,llm,openai/gpt-oss-120b,v2,0.967,58,60,2,2,2,0,60,29.8
+2026-10-13T19:06:20.493Z,llm,openai/gpt-oss-120b,v2,0.917,55,60,5,2,2,0,60,77.1
+2026-10-13T19:07:37.741Z,llm,openai/gpt-oss-120b,v1,0.933,56,60,3,2,2,0,60,69.0
+2026-10-13T19:08:57.798Z,llm,openai/gpt-oss-120b,v2,0.95,57,60,3,2,2,0,60,79.2

@@ -52,3 +52,15 @@ describe("parseCsv", () => {
     expect(() => parseCsv('body\n"oops')).toThrow(/unclosed quote/);
   });
 });
+
+describe("parseInbox format detection", () => {
+  it.each([
+    ['[{"body":"x"}]', "json"],
+    ["body\nhello", "csv"],
+    ["hello there", "text"],
+    ["", "empty"],
+    ["[oops", "json"],
+  ])("%j is %s", (input, format) => {
+    expect(parseInbox(input).format).toBe(format);
+  });
+});

@@ -1,6 +1,6 @@
+import { computeFlags, LOW_CONFIDENCE } from "./flags";
 import type { Intent } from "./intents";
-import { SENSITIVE_INTENTS } from "./intents";
-import type { Classification, Flag, Message } from "./schema";
+import type { Classification, Message } from "./schema";
 
 // Keyword baseline. Deliberately dumb: it exists so the app works with no API
 // key, tests are deterministic, and the LLM has a number to beat.
@@ -45,14 +45,7 @@ const RULES: Record<Exclude<Intent, "other">, Rule[]> = {
   ],
 };
 
-// Phrases that try to steer the AI rather than talk to a recruiter.
-const INJECTION_PATTERNS: RegExp[] = [
-  /ignore (all |any )?(previous|prior|above) (instructions|prompts?)/i,
-  /\b(system prompt|you are now|act as|developer mode)\b/i,
-  /\b(as an ai|dear (ai|assistant|chatbot|llm))\b/i,
-];
-
-export const LOW_CONFIDENCE = 0.5;
+export { LOW_CONFIDENCE };
 
 export function classifyFallback(msg: Message): Classification {
   const text = `${msg.subject}\n${msg.body}`;
@@ -80,10 +73,6 @@ export function classifyFallback(msg: Message): Classification {
     reason = `Keyword score ${top.score} for ${top.intent}${runnerUp}.`;
   }
 
-  const flags: Flag[] = [];
-  if (INJECTION_PATTERNS.some((p) => p.test(text))) flags.push("possible_injection");
-  if (SENSITIVE_INTENTS.has(intent) || flags.includes("possible_injection")) flags.push("needs_human");
-  if (confidence < LOW_CONFIDENCE) flags.push("low_confidence");
-
+  const flags = computeFlags(msg, intent, confidence);
   return { id: msg.id, intent, confidence, flags, reason, method: "fallback" };
 }

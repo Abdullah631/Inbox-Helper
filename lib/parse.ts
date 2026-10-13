@@ -1,20 +1,21 @@
 import { MessageSchema, type Message } from "./schema";
 
-export type ParseResult = { messages: Message[]; errors: string[] };
+export type InputFormat = "json" | "csv" | "text" | "empty";
+export type ParseResult = { messages: Message[]; errors: string[]; format: InputFormat };
 
 // Accepts what a recruiter is likely to paste: a JSON array, a CSV with a
 // header row, or plain text messages separated by lines of `---`.
 export function parseInbox(raw: string): ParseResult {
   const text = raw.trim();
-  if (!text) return { messages: [], errors: ["Input is empty."] };
+  if (!text) return { messages: [], errors: ["Input is empty."], format: "empty" };
 
   try {
-    if (text.startsWith("[")) return fromRecords(parseJson(text));
+    if (text.startsWith("[")) return fromRecords(parseJson(text), "json");
 
     const firstLine = text.split(/\r?\n/, 1)[0].toLowerCase();
-    if (/(^|,)\s*"?body"?\s*(,|$)/.test(firstLine)) return fromRecords(parseCsv(text));
+    if (/(^|,)\s*"?body"?\s*(,|$)/.test(firstLine)) return fromRecords(parseCsv(text), "csv");
   } catch (e) {
-    if (e instanceof ParseError) return { messages: [], errors: [e.message] };
+    if (e instanceof ParseError) return { messages: [], errors: [e.message], format: text.startsWith("[") ? "json" : "csv" };
     throw e;
   }
 
@@ -24,6 +25,7 @@ export function parseInbox(raw: string): ParseResult {
       .map((b) => b.trim())
       .filter(Boolean)
       .map((body) => ({ body })),
+    "text",
   );
 }
 
@@ -82,7 +84,7 @@ export function parseCsv(text: string): Record<string, string>[] {
   return body.map((r) => Object.fromEntries(keys.map((k, i) => [k, (r[i] ?? "").trim()])));
 }
 
-function fromRecords(records: unknown[]): ParseResult {
+function fromRecords(records: unknown[], format: InputFormat): ParseResult {
   const messages: Message[] = [];
   const errors: string[] = [];
 
@@ -99,7 +101,7 @@ function fromRecords(records: unknown[]): ParseResult {
     seen.add(m.id);
   }
 
-  return { messages, errors };
+  return { messages, errors, format };
 }
 
 export class ParseError extends Error {}
