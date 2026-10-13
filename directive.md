@@ -56,6 +56,17 @@ session. I'll keep editing it through the week; git history has every version.
 - Don't trust model names from memory. Check the provider's model list first.
   On Day 2 the default model I was given had been retired.
 
+## Checking model output
+
+- Read the outputs, not only the scores. On Day 3 every real fix came from
+  reading drafts: claimed actions, invented company facts, curly apostrophes
+  slipping past a regex. None of them showed up in a metric until I added one.
+- Guardrail tests must include text the model actually wrote, not only text I
+  imagined it would write.
+- A second opinion from the same model is not independent. Don't count it as a
+  safety check without measuring it.
+- Anything that can remove a "needs a person" flag needs its own rule and test.
+
 ## Writing docs and logs
 
 The README, intent, directive, daily logs and the unlearning note are things

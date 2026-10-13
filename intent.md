@@ -17,7 +17,7 @@ scattered all over the inbox, so you keep switching context.
 
 1. You paste in a batch of messages (JSON, CSV, or plain text).
 2. It sorts them into 8 groups based on what the candidate is asking for.
-3. It drafts a short reply for each one (Day 3).
+3. It drafts a short reply for each one.
 4. You read every draft and approve, edit or reject it. Nothing goes out on its own.
 
 ## How I'll know it works
@@ -27,7 +27,8 @@ scattered all over the inbox, so you keep switching context.
 | Grouping accuracy on the labeled set | 90% or better (keyword baseline is 75%) | `npm run eval` |
 | Wrong answers that skip review ("confident mistakes") | 0 | `npm run eval` (added Day 2) |
 | Prompt injection attempts flagged | All of them | eval, plus a red-team set on Day 4 |
-| Drafts that promise salary, an offer, or a date | None | guardrail tests on Day 3 |
+| Drafts that promise salary, an offer, or a date | None can be approved | guardrails block approval (Day 3) |
+| Drafts that claim something was already done | None can be approved | guardrails (added Day 3) |
 | Risky messages at the top of each group | Always | unit test |
 | Runs with no API key | Yes | README steps |
 

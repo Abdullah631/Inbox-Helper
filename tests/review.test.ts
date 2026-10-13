@@ -1,0 +1,63 @@
+import { describe, expect, it } from "vitest";
+import { parseCsv } from "@/lib/parse";
+import { approvalCheck, fillKnownPlaceholders, guessFirstName, replySubject, toCsv } from "@/lib/review";
+
+const msg = (from: string) => ({ id: "a", from, subject: "", body: "x" });
+
+describe("guessFirstName", () => {
+  it.each([
+    ["aisha.khan@mail.com", "Aisha"],
+    ["TOMAS.r@mail.com", "Tomas"],
+    ["kemi_a@mail.com", "Kemi"],
+    ["anon123@mail.com", null],
+    ["x@mail.com", null],
+    ["promo@deals.biz", "Promo"],
+    ["unknown", null],
+    ["", null],
+  ])("%s -> %s", (from, name) => {
+    expect(guessFirstName(from)).toBe(name);
+  });
+});
+
+describe("fillKnownPlaceholders", () => {
+  it("fills the candidate and recruiter names and leaves the rest", () => {
+    expect(fillKnownPlaceholders("Hi [NAME], [INTERVIEW_SLOT]? [RECRUITER_NAME]", msg("li.wei@mail.com"), " Sara "))
+      .toBe("Hi Li, [INTERVIEW_SLOT]? Sara");
+  });
+
+  it("leaves placeholders alone when it can't fill them", () => {
+    expect(fillKnownPlaceholders("Hi [NAME], [RECRUITER_NAME]", msg("x@mail.com"), "")).toBe("Hi [NAME], [RECRUITER_NAME]");
+  });
+});
+
+describe("approvalCheck", () => {
+  it("allows a clean, fully filled draft", () => {
+    expect(approvalCheck("Hi Li, thanks. I'll check and come back to you. Sara").canApprove).toBe(true);
+  });
+
+  it("blocks on leftover placeholders and on guardrail issues", () => {
+    const placeholder = approvalCheck("Hi Li, does [INTERVIEW_SLOT] work? Sara");
+    expect(placeholder).toMatchObject({ canApprove: false, placeholders: ["[INTERVIEW_SLOT]"], issues: [] });
+
+    const issue = approvalCheck("Hi Li, see you Friday. Sara");
+    expect(issue.canApprove).toBe(false);
+    expect(issue.issues[0].kind).toBe("date");
+  });
+
+  it("blocks an empty reply, which is how injection messages start", () => {
+    expect(approvalCheck("").canApprove).toBe(false);
+  });
+});
+
+describe("export", () => {
+  it("builds reply subjects without doubling Re:", () => {
+    expect(replySubject("Interview time")).toBe("Re: Interview time");
+    expect(replySubject("Re: Technical round")).toBe("Re: Technical round");
+    expect(replySubject("")).toBe("Re: your message");
+  });
+
+  it("writes CSV that our own parser reads back the same", () => {
+    const rows = [{ id: "m1", to: "a@b.com", subject: 'Re: "quotes", commas', body: "Line one\nLine two" }];
+    expect(parseCsv(toCsv(rows))).toEqual(rows);
+  });
+});

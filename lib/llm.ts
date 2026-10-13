@@ -16,9 +16,10 @@ export class LlmError extends Error {
 }
 
 const DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b";
-const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
+const DEFAULT_GEMINI_MODEL = "gemini-3.8-flash";
 const TIMEOUT_MS = 25_000;
-const MAX_RATE_LIMIT_RETRIES = 2;
+const MAX_RETRIES = 3;
+const MAX_WAIT_MS = 20_000;
 
 type Env = Record<string, string | undefined>;
 
@@ -79,10 +80,11 @@ async function post(url: string, opts: { headers: Record<string, string>; body: 
     throw new LlmError(`Request failed: ${(e as Error).message}`);
   }
 
-  // Free tiers rate-limit hard. Wait it out a couple of times before giving up.
-  if (res.status === 429 && attempt < MAX_RATE_LIMIT_RETRIES) {
-    const retryAfter = Number(res.headers.get("retry-after"));
-    const waitMs = Math.min(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 2000 * 2 ** attempt, 15_000);
+  // Free tiers rate-limit hard (429) and get overloaded (503). Both are temporary,
+  // so wait it out a couple of times before giving up.
+  if ((res.status === 429 || res.status === 503) && attempt < MAX_RETRIES) {
+    const body = await res.text().catch(() => "");
+    const waitMs = retryDelayMs(res.headers.get("retry-after"), body, attempt);
     await new Promise((r) => setTimeout(r, waitMs));
     return post(url, opts, attempt + 1);
   }
@@ -92,4 +94,15 @@ async function post(url: string, opts: { headers: Record<string, string>; body: 
     throw new LlmError(`HTTP ${res.status}: ${detail}`, res.status);
   }
   return res.json();
+}
+
+// Groq's token limit is per minute, so a fixed 2s/4s backoff often isn't enough
+// (Day 3: a batch failed after two quick retries). Prefer the server's own hint,
+// from the header or from "try again in 7.5s" in the body, plus a little slack.
+export function retryDelayMs(retryAfterHeader: string | null, body: string, attempt: number): number {
+  const header = Number(retryAfterHeader);
+  const hinted = body.match(/try again in ([\d.]+)\s*s/i);
+  const seconds = Number.isFinite(header) && header > 0 ? header : hinted ? Number(hinted[1]) : 0;
+  const ms = seconds > 0 ? seconds * 1000 + 500 : 3000 * 2 ** attempt;
+  return Math.min(ms, MAX_WAIT_MS);
 }

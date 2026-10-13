@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "eval": "tsx scripts/run-eval.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "eval:drafts": "tsx scripts/run-draft-eval.ts"
   },
   "dependencies": {
     "next": "15.5.27",

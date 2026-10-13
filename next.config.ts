@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/classify": ["./prompts/**"],
     "/api/config": ["./prompts/**"],
+    "/api/draft": ["./prompts/**"],
   },
 };
 

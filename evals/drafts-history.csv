@@ -1,0 +1,9 @@
+run_at,model,draft_prompt,classified_by,llm_drafts,blocked,confident_mistakes,caught,caught_right_group,false_disputes,fallbacks,seconds
+2026-10-13T19:49:28.090Z,openai/gpt-oss-120b,v1,"evals/results/llm-v1-2026-10-13T19-02-24-008Z.json",58,2,3,0,0,0,0,70.9
+2026-10-13T19:52:41.856Z,openai/gpt-oss-120b,v2,"evals/results/llm-v1-2026-10-13T19-02-24-008Z.json",58,4,3,1,1,2,0,67.6
+2026-10-13T19:54:41.139Z,openai/gpt-oss-120b,v2,"evals/results/llm-v1-2026-10-13T19-02-24-008Z.json",58,4,3,0,0,1,0,118.5
+2026-10-13T19:56:08.321Z,openai/gpt-oss-120b,v2,"evals/results/llm-v1-2026-10-13T19-02-24-008Z.json",58,4,3,1,1,1,0,86.4
+2026-10-13T19:58:00.950Z,openai/gpt-oss-120b,v1,"evals/results/llm-v1-2026-10-13T19-02-24-008Z.json",58,9,3,0,0,0,0,98.2
+2026-10-13T19:59:51.878Z,openai/gpt-oss-120b,v1,"evals/results/llm-v1-2026-10-13T19-02-24-008Z.json",58,10,3,0,0,0,0,110.1
+2026-10-13T20:04:08.404Z,openai/gpt-oss-120b,v2,"evals/results/llm-v1-2026-10-13T19-02-24-008Z.json",48,5,3,0,0,0,10,47.9
+2026-10-13T20:06:06.655Z,openai/gpt-oss-120b,v2,"evals/results/llm-v1-2026-10-13T19-02-24-008Z.json",58,4,3,0,0,0,0,75.5

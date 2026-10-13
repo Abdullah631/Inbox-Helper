@@ -3,21 +3,27 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import sample from "@/data/sample-inbox.json";
 import { FileIcon, ShieldIcon, SparkIcon, UploadIcon, XIcon } from "@/components/icons";
-import { MessageCard } from "@/components/MessageCard";
+import { MessageCard, type ReviewState } from "@/components/MessageCard";
 import { Segmented } from "@/components/Segmented";
-import { groupByIntent, type Group } from "@/lib/group";
+import { computeFlags } from "@/lib/flags";
+import { groupByIntent } from "@/lib/group";
 import { INTENT_INFO, type Intent } from "@/lib/intents";
 import { parseInbox } from "@/lib/parse";
-import type { Classification, Message } from "@/lib/schema";
+import { fillKnownPlaceholders, replySubject, toCsv, type ApprovedReply, type ReviewStatus } from "@/lib/review";
+import type { Classification, Draft, Message } from "@/lib/schema";
+import { TEMPLATES } from "@/lib/templates";
 
 type Mode = "auto" | "llm" | "keyword";
 type Config = { llmAvailable: boolean; provider: string | null; model: string | null; promptVersion: string | null };
 type RunInfo = { method: string; model?: string; promptVersion?: string; seconds: number };
-type Filter = "all" | "review" | Intent;
+type Filter = "all" | "review" | "todo" | "done" | Intent;
+type Stage = { label: string; done: number; total: number };
 
 // Small requests keep each serverless call well under the time limit and let us show progress.
-const CHUNK = 20;
+const CLASSIFY_CHUNK = 20;
+const DRAFT_CHUNK = 10;
 const MODE_KEY = "inbox-helper-mode";
+const NAME_KEY = "inbox-helper-recruiter";
 
 const INTENT_COLOR: Record<Intent, string> = {
   scheduling: "#3b82f6",
@@ -32,19 +38,35 @@ const INTENT_COLOR: Record<Intent, string> = {
 
 // The demo input shouldn't show the answer key.
 const SAMPLE_TEXT = JSON.stringify(sample.map(({ id, from, subject, body }) => ({ id, from, subject, body })), null, 2);
-
 const FORMAT_LABEL = { json: "JSON", csv: "CSV", text: "plain text", empty: "" } as const;
+
+async function postJson(url: string, body: unknown) {
+  const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const data = await res.json();
+  if (!res.ok) throw new Error([data.error, ...(data.issues ?? [])].join(" "));
+  return data;
+}
+
+function download(name: string, type: string, content: string) {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const a = Object.assign(document.createElement("a"), { href: url, download: name });
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function Home() {
   const [raw, setRaw] = useState("");
   const [mode, setMode] = useState<Mode>("auto");
   const [config, setConfig] = useState<Config | null>(null);
-  const [groups, setGroups] = useState<Group[] | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [classes, setClasses] = useState<Record<string, Classification>>({});
+  const [reviews, setReviews] = useState<Record<string, ReviewState>>({});
   const [run, setRun] = useState<RunInfo | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
-  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [stage, setStage] = useState<Stage | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
+  const [recruiter, setRecruiter] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -52,6 +74,7 @@ export default function Home() {
     try {
       const saved = localStorage.getItem(MODE_KEY);
       if (saved === "auto" || saved === "llm" || saved === "keyword") setMode(saved);
+      setRecruiter(localStorage.getItem(NAME_KEY) ?? "");
     } catch {}
   }, []);
 
@@ -59,8 +82,13 @@ export default function Home() {
   const effectiveMode: Mode = mode === "llm" && config && !config.llmAvailable ? "auto" : mode;
 
   const parsed = useMemo(() => parseInbox(raw), [raw]);
-  const loading = progress !== null;
+  const loading = stage !== null;
   const canRun = parsed.messages.length > 0 && !loading;
+  const sorted = messages.length > 0 && Object.keys(classes).length === messages.length;
+  const groups = useMemo(
+    () => (sorted ? groupByIntent(messages, messages.map((m) => classes[m.id])) : null),
+    [sorted, messages, classes],
+  );
 
   function changeMode(m: Mode) {
     setMode(m);
@@ -76,62 +104,141 @@ export default function Home() {
     setErrors([]);
   }
 
-  async function classify() {
-    const messages = parsed.messages;
-    if (!messages.length) return;
-    setErrors(parsed.errors.filter((e) => e !== "Input is empty."));
-    setWarnings([]);
-    setGroups(null);
-    setFilter("all");
-    setProgress({ done: 0, total: messages.length });
-    const started = performance.now();
+  function reset() {
+    setMessages([]); setClasses({}); setReviews({}); setRun(null); setErrors([]); setWarnings([]); setFilter("all");
+  }
 
-    const all: Classification[] = [];
+  async function sortAndDraft() {
+    const msgs = parsed.messages;
+    if (!msgs.length) return;
+    reset();
+    setErrors(parsed.errors.filter((e) => e !== "Input is empty."));
+    setMessages(msgs);
+    const started = performance.now();
     const runWarnings: string[] = [];
-    let info: Omit<RunInfo, "seconds"> = { method: "keyword" };
 
     try {
-      for (let i = 0; i < messages.length; i += CHUNK) {
-        const chunk: Message[] = messages.slice(i, i + CHUNK);
-        const res = await fetch("/api/classify", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ messages: chunk, mode: effectiveMode }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error([data.error, ...(data.issues ?? [])].join(" "));
+      // 1. Sort
+      const all: Classification[] = [];
+      let info: Omit<RunInfo, "seconds"> = { method: "keyword" };
+      for (let i = 0; i < msgs.length; i += CLASSIFY_CHUNK) {
+        setStage({ label: "Sorting", done: i, total: msgs.length });
+        const data = await postJson("/api/classify", { messages: msgs.slice(i, i + CLASSIFY_CHUNK), mode: effectiveMode });
         all.push(...data.classifications);
         runWarnings.push(...data.warnings);
         info = { method: data.method, model: data.model, promptVersion: data.promptVersion };
-        setProgress({ done: Math.min(i + CHUNK, messages.length), total: messages.length });
       }
-      setGroups(groupByIntent(messages, all));
+      const byId = Object.fromEntries(all.map((c) => [c.id, c]));
+      setClasses(byId);
       setRun({ ...info, seconds: (performance.now() - started) / 1000 });
-      setWarnings([...new Set(runWarnings)]);
+
+      // 2. Draft. Sorting results are already on screen, so this can fail without losing them.
+      for (let i = 0; i < msgs.length; i += DRAFT_CHUNK) {
+        setStage({ label: "Drafting replies", done: i, total: msgs.length });
+        const chunk = msgs.slice(i, i + DRAFT_CHUNK);
+        const data = await postJson("/api/draft", {
+          items: chunk.map((message) => ({ message, classification: byId[message.id] })),
+          mode: effectiveMode,
+        });
+        runWarnings.push(...data.warnings);
+        applyDrafts(chunk, data.drafts as Draft[]);
+      }
     } catch (e) {
       setErrors((prev) => [...prev, (e as Error).message]);
     } finally {
-      setProgress(null);
+      setWarnings([...new Set(runWarnings)]);
+      setStage(null);
     }
+  }
+
+  function applyDrafts(chunk: Message[], drafts: Draft[]) {
+    const name = recruiter;
+    setReviews((prev) => {
+      const next = { ...prev };
+      drafts.forEach((draft, j) => {
+        const text = fillKnownPlaceholders(draft.reply, chunk[j], name);
+        next[draft.id] = { draft, text, original: text, status: "pending" };
+      });
+      return next;
+    });
+    const disputed = drafts.filter((d) => d.dispute).map((d) => d.id);
+    if (disputed.length) {
+      setClasses((prev) => {
+        const next = { ...prev };
+        for (const id of disputed) next[id] = { ...next[id], flags: [...next[id].flags, "intent_disputed"] };
+        return next;
+      });
+    }
+  }
+
+  function updateReview(id: string, patch: Partial<ReviewState>) {
+    setReviews((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
+  }
+
+  // A person overrode the group. Their call wins, so the confidence is treated as certain.
+  function moveTo(id: string, intent: Intent) {
+    const message = messages.find((m) => m.id === id)!;
+    const old = classes[id];
+    const injection = old.flags.includes("possible_injection");
+    setClasses((prev) => ({
+      ...prev,
+      [id]: { ...old, intent, confidence: 1, flags: computeFlags(message, intent, 1, injection),
+        reason: `Moved by you from ${INTENT_INFO[old.intent].label}.` },
+    }));
+    const r = reviews[id];
+    if (r?.draft.source === "template" && r.status === "pending") {
+      const text = fillKnownPlaceholders(TEMPLATES[intent], message, recruiter);
+      updateReview(id, { text, original: text });
+    }
+  }
+
+  function keepGroup(id: string) {
+    setClasses((prev) => ({ ...prev, [id]: { ...prev[id], flags: prev[id].flags.filter((f) => f !== "intent_disputed") } }));
+  }
+
+  function signAll() {
+    try { localStorage.setItem(NAME_KEY, recruiter); } catch {}
+    if (!recruiter.trim()) return;
+    setReviews((prev) => {
+      const next = { ...prev };
+      for (const [id, r] of Object.entries(prev)) {
+        if (r.status !== "pending") continue;
+        next[id] = { ...r, text: r.text.replaceAll("[RECRUITER_NAME]", recruiter.trim()), original: r.original.replaceAll("[RECRUITER_NAME]", recruiter.trim()) };
+      }
+      return next;
+    });
+  }
+
+  function approvedReplies(): ApprovedReply[] {
+    return messages
+      .filter((m) => reviews[m.id]?.status === "approved")
+      .map((m) => ({ id: m.id, to: m.from, subject: replySubject(m.subject), body: reviews[m.id].text }));
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
     if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && canRun) {
       e.preventDefault();
-      classify();
+      sortAndDraft();
     }
   }
 
   const items = groups?.flatMap((g) => g.items) ?? [];
-  const reviewCount = items.filter((i) => i.classification.flags.length).length;
+  const needsReview = (id: string) => classes[id]?.flags.length > 0;
+  const statusOf = (id: string): ReviewStatus | undefined => reviews[id]?.status;
+  const reviewCount = items.filter((i) => needsReview(i.message.id)).length;
   const injectionCount = items.filter((i) => i.classification.flags.includes("possible_injection")).length;
+  const approved = items.filter((i) => statusOf(i.message.id) === "approved").length;
+  const rejected = items.filter((i) => statusOf(i.message.id) === "rejected").length;
+  const done = approved + rejected;
 
+  const keep = (id: string) =>
+    filter === "review" ? needsReview(id)
+      : filter === "todo" ? statusOf(id) !== "approved" && statusOf(id) !== "rejected"
+        : filter === "done" ? statusOf(id) === "approved" || statusOf(id) === "rejected"
+          : true;
   const visibleGroups = (groups ?? [])
-    .map((g) => ({
-      ...g,
-      items: filter === "review" ? g.items.filter((i) => i.classification.flags.length) : g.items,
-    }))
-    .filter((g) => g.items.length && (filter === "all" || filter === "review" || g.intent === filter));
+    .map((g) => ({ ...g, items: g.items.filter((i) => keep(i.message.id)) }))
+    .filter((g) => g.items.length && (["all", "review", "todo", "done"].includes(filter) || g.intent === filter));
 
   const aiLabel = config?.llmAvailable ? "AI" : "AI (no key)";
 
@@ -140,24 +247,24 @@ export default function Home() {
       <div className="container">
         <h1 className="page-title">Sort the inbox</h1>
         <p className="page-lead">
-          Paste candidate messages or upload a file. They get grouped by what each person wants, and the risky ones go to the top.
-          Nothing is ever sent automatically.
+          Paste candidate messages or upload a file. They get grouped by what each person wants, each one gets a draft
+          reply, and you approve or edit every reply. Nothing is ever sent automatically.
         </p>
 
         <section className="card composer" aria-label="Messages to sort">
           <div className="composer-head">
             <h2>Messages</h2>
             <div className="mode-row">
-              <span className="field-label" id="mode-label">Classifier</span>
+              <span className="field-label">Classifier</span>
               <Segmented<Mode>
                 label="Classifier"
                 value={effectiveMode}
                 onChange={changeMode}
                 options={[
-                  { value: "auto", label: "Auto", title: "Use AI if a key is configured, otherwise keywords" },
+                  { value: "auto", label: "Auto", title: "Use AI if a key is configured, otherwise keywords and templates" },
                   { value: "llm", label: <><SparkIcon width={13} height={13} />{aiLabel}</>, disabled: config ? !config.llmAvailable : false,
                     title: config?.llmAvailable ? `${config.model}, prompt ${config.promptVersion}` : "No GROQ_API_KEY or GEMINI_API_KEY on the server" },
-                  { value: "keyword", label: "Keywords", title: "Fast, deterministic, no API calls" },
+                  { value: "keyword", label: "Keywords", title: "Keyword sorting and template replies. No API calls" },
                 ]}
               />
             </div>
@@ -173,9 +280,9 @@ export default function Home() {
             placeholder={"Paste JSON, CSV with a body column, or plain text with --- between messages.\n\nHi, any update on my application?\n---\nCould we move Thursday's interview to Friday?"}
           />
 
-          {progress && (
-            <div className="progress" role="progressbar" aria-valuenow={progress.done} aria-valuemax={progress.total}>
-              <div style={{ width: `${(progress.done / progress.total) * 100}%` }} />
+          {stage && (
+            <div className="progress" role="progressbar" aria-valuenow={stage.done} aria-valuemax={stage.total}>
+              <div style={{ width: `${(stage.done / stage.total) * 100}%` }} />
             </div>
           )}
 
@@ -188,22 +295,21 @@ export default function Home() {
                 <UploadIcon /> Upload file
               </button>
               <input ref={fileInput} type="file" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden onChange={onFile} />
-              <button className="btn btn-ghost" type="button" disabled={!raw}
-                onClick={() => { setRaw(""); setGroups(null); setRun(null); setErrors([]); setWarnings([]); }}>
+              <button className="btn btn-ghost" type="button" disabled={!raw || loading} onClick={() => { setRaw(""); reset(); }}>
                 <XIcon /> Clear
               </button>
               <InputStatus parsed={parsed} />
             </div>
-            <button className="btn btn-primary" type="button" onClick={classify} disabled={!canRun}>
-              {loading ? `Sorting ${progress.done}/${progress.total}...` : "Sort messages"}
-              {!loading && <span className="kbd-hint">Ctrl/Cmd + Enter</span>}
+            <button className="btn btn-primary" type="button" onClick={sortAndDraft} disabled={!canRun}>
+              {stage ? `${stage.label}...` : "Sort and draft"}
+              {!stage && <span className="kbd-hint">Ctrl/Cmd + Enter</span>}
             </button>
           </div>
         </section>
 
         {errors.length > 0 && (
           <div className="alert alert-danger" role="alert">
-            <strong>Some input couldn&apos;t be used.</strong>
+            <strong>Something didn&apos;t work.</strong>
             <ul>{errors.map((e, i) => <li key={i}>{e}</li>)}</ul>
           </div>
         )}
@@ -222,27 +328,47 @@ export default function Home() {
                 <div className="stat-sub">in {groups.length} groups</div>
               </div>
               <div className="card stat">
-                <div className="stat-label">Need review</div>
+                <div className="stat-label">Need a closer look</div>
                 <div className="stat-value">{reviewCount}</div>
-                <div className="stat-sub">flagged or unsure</div>
+                <div className="stat-sub">
+                  <ShieldIcon width={12} height={12} style={{ verticalAlign: -1 }} /> incl. {injectionCount} injection attempt{injectionCount === 1 ? "" : "s"}
+                </div>
               </div>
               <div className="card stat">
-                <div className="stat-label">Injection attempts</div>
-                <div className="stat-value">{injectionCount}</div>
-                <div className="stat-sub"><ShieldIcon width={12} height={12} style={{ verticalAlign: -1 }} /> sent to a person</div>
+                <div className="stat-label">Reviewed</div>
+                <div className="stat-value">{done}<span className="stat-of"> / {items.length}</span></div>
+                <div className="stat-sub">{approved} approved, {rejected} no reply</div>
               </div>
               <div className="card stat">
                 <div className="stat-label">Sorted by</div>
                 <div className="stat-value small">{run.method === "llm" ? run.model : "Keyword rules"}</div>
-                <div className="stat-sub">
-                  {run.method === "llm" ? `prompt ${run.promptVersion}, ` : ""}{run.seconds.toFixed(1)}s
-                </div>
+                <div className="stat-sub">{run.method === "llm" ? `prompt ${run.promptVersion}, ` : ""}{run.seconds.toFixed(1)}s to sort</div>
               </div>
             </div>
 
-            <div className="tabs" role="tablist" aria-label="Filter groups">
+            <div className="card review-bar">
+              <label className="field">
+                <span className="field-label">Sign replies as</span>
+                <input value={recruiter} onChange={(e) => setRecruiter(e.target.value)} onBlur={signAll}
+                  onKeyDown={(e) => e.key === "Enter" && signAll()} placeholder="Your name" />
+              </label>
+              <div className="review-progress">
+                <div className="progress"><div style={{ width: `${items.length ? (done / items.length) * 100 : 0}%` }} /></div>
+                <span>{done} of {items.length} reviewed</span>
+              </div>
+              <div className="toolbar">
+                <button type="button" className="btn btn-sm" disabled={!approved}
+                  onClick={() => download("approved-replies.csv", "text/csv", toCsv(approvedReplies()))}>Export CSV</button>
+                <button type="button" className="btn btn-sm" disabled={!approved}
+                  onClick={() => download("approved-replies.json", "application/json", JSON.stringify(approvedReplies(), null, 2))}>Export JSON</button>
+              </div>
+            </div>
+
+            <div className="tabs" role="tablist" aria-label="Filter messages">
               <FilterTab current={filter} value="all" onSelect={setFilter} label="All" count={items.length} />
-              <FilterTab current={filter} value="review" onSelect={setFilter} label="Needs review" count={reviewCount} />
+              <FilterTab current={filter} value="review" onSelect={setFilter} label="Needs a look" count={reviewCount} />
+              <FilterTab current={filter} value="todo" onSelect={setFilter} label="To do" count={items.length - done} />
+              <FilterTab current={filter} value="done" onSelect={setFilter} label="Done" count={done} />
               {groups.map((g) => (
                 <FilterTab key={g.intent} current={filter} value={g.intent} onSelect={setFilter}
                   label={INTENT_INFO[g.intent].label} count={g.items.length} color={INTENT_COLOR[g.intent]} />
@@ -260,10 +386,25 @@ export default function Home() {
                   <p>{INTENT_INFO[g.intent].description}</p>
                 </div>
                 <div className="group-list">
-                  {g.items.map((item) => <MessageCard key={item.message.id} item={item} />)}
+                  {g.items.map((item) => {
+                    const id = item.message.id;
+                    return (
+                      <MessageCard
+                        key={id}
+                        item={item}
+                        review={reviews[id]}
+                        onText={(text) => updateReview(id, { text })}
+                        onStatus={(status) => updateReview(id, { status })}
+                        onReset={() => updateReview(id, { text: reviews[id].original })}
+                        onMove={(intent) => moveTo(id, intent)}
+                        onKeepGroup={() => keepGroup(id)}
+                      />
+                    );
+                  })}
                 </div>
               </section>
             ))}
+            {visibleGroups.length === 0 && <div className="empty"><p>Nothing here with this filter.</p></div>}
           </>
         ) : (
           !loading && (

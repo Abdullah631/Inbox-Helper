@@ -248,7 +248,7 @@ main { padding: 28px 0 80px; }
 
 .meter { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .meter-track { width: 46px; height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; }
-.meter-fill { height: 100%; background: var(--ok); }
+.meter-fill { display: block; height: 100%; background: var(--ok); }
 .meter-fill.low { background: var(--warn); }
 
 .intent-dot { width: 9px; height: 9px; border-radius: 3px; flex: none; }
@@ -267,3 +267,51 @@ main { padding: 28px 0 80px; }
   .composer-foot .btn-primary { width: 100%; }
   .btn .kbd-hint { display: none; }
 }
+
+/* Review: dispute banner, draft editor, review bar */
+.btn-sm { height: 30px; padding: 0 11px; font-size: 0.82rem; }
+.badge-ok { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); border-color: transparent; }
+.msg.approved { border-left: 3px solid var(--ok); }
+.msg.rejected { opacity: 0.7; }
+.muted-text { color: var(--muted); font-size: 0.85rem; }
+
+.dispute {
+  margin-top: 12px; padding: 10px 12px; border-radius: var(--radius-sm);
+  background: var(--warn-soft); color: var(--warn); font-size: 0.85rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+}
+.dispute-actions { display: flex; gap: 6px; }
+
+.draft { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border-strong); }
+.draft-done { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.draft-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.draft-title { font-size: 0.8rem; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; }
+.draft-note { font-size: 0.85rem; color: var(--danger); margin-bottom: 8px; }
+.draft-text {
+  display: block; width: 100%; resize: vertical; padding: 10px 12px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text); font: inherit; font-size: 0.92rem; line-height: 1.5;
+}
+.draft-text:focus-visible { border-color: var(--accent); box-shadow: var(--ring); }
+.draft-text[readonly] { background: var(--surface-2); color: var(--text-2); }
+.draft-issues { list-style: none; margin-top: 8px; display: grid; gap: 4px; font-size: 0.82rem; }
+.draft-issues li { padding: 6px 10px; border-radius: 6px; }
+.draft-issues code { margin-left: 4px; }
+.issue-block { background: var(--danger-soft); color: var(--danger); }
+.issue-fill { background: var(--surface-2); color: var(--text-2); }
+.draft-actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.draft-blocked { font-size: 0.78rem; color: var(--muted); }
+
+.review-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-top: 16px; padding: 12px 16px;
+}
+.review-bar .field { display: flex; align-items: center; gap: 8px; }
+.review-bar input {
+  height: 32px; padding: 0 10px; width: 180px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); font: inherit; font-size: 0.875rem;
+}
+.review-bar input:focus-visible { border-color: var(--accent); box-shadow: var(--ring); }
+.review-progress { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-2); }
+.review-progress .progress { width: 120px; }
+.stat-of { font-size: 0.95rem; color: var(--muted); font-weight: 500; }

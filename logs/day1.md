@@ -17,6 +17,14 @@ Then I gave Claude Code one prompt for the whole day, "implement day one", and
 let it build everything. After that I asked for one change: no emoji in anything
 I hand in, and all docs written the way I'd write them myself.
 
+Then I set up pushing. I showed it how my other project commits under my own
+name with repo-only git settings, and asked for the same here, with no AI
+co-author line in the commits. The template's first commit had been made under
+the Mac's global git identity, which isn't mine, so it was folded into a single
+Day 1 commit before anything was pushed. The first push failed with a 403
+because the token saved in Keychain only covered my other repo. I made a new
+token for this repo, swapped it in, and pushed.
+
 ## What got built
 
 - A Next.js 15 + TypeScript app with a `/api/classify` route and a page that
@@ -77,13 +85,24 @@ it. When I added a proper metric for it on Day 2 the real count was 11.
 - [ ] Go through all 60 labels myself, fix the wrong ones, set `label_source`
       to "human", and re-run the eval.
 - [ ] Read `intent.md` and change anything I don't agree with.
-- [ ] Commit, push to GitHub, deploy on Vercel, put the URL in the README.
+- [x] Commit, push to GitHub, deploy on Vercel. (URL still not in the README.)
 - [ ] Look up the current Groq and Gemini free tier limits and note them here.
 
 ## Habit I dropped today
 
-(to fill in)
+Starting by writing code. Normally I'd open an editor, scaffold the project by
+hand and pick the stack from habit. Today I didn't write a line myself. I asked
+the AI which project to pick and why, gave it one prompt for the whole day, and
+spent my time reading what it built and deciding what to keep.
 
 ## What surprised me
 
-(to fill in)
+That it argued against making its own numbers look better. It could have tuned
+the keyword rules until the 60 sample messages scored close to 100%. Instead it
+left the baseline at 75%, said tuning on the test set would be cheating, and
+marked all 60 labels as "AI-proposed, not checked". I expected to have to push
+for that kind of honesty, not get it by default.
+
+The other surprise was how much of the day went to plumbing that had nothing to
+do with AI: git identity, a Keychain token, a 403. That part was slower than the
+whole build.

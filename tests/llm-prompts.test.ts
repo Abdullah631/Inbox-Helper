@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { INTENTS } from "@/lib/intents";
-import { getProvider, LlmError } from "@/lib/llm";
+import { getProvider, LlmError, retryDelayMs } from "@/lib/llm";
 import { ACTIVE_PROMPTS, listVersions, loadPrompt } from "@/lib/prompts";
 
 describe("getProvider", () => {
@@ -43,10 +43,32 @@ describe("Groq provider over HTTP", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const pending = getProvider({ GROQ_API_KEY: "k" })!.completeJson([]);
-    await vi.advanceTimersByTimeAsync(1000);
+    await vi.advanceTimersByTimeAsync(1500);
     await expect(pending).resolves.toBe("{}");
     expect(fetchMock).toHaveBeenCalledTimes(2);
     vi.useRealTimers();
+  });
+
+  it("retries a 503 (model overloaded) the same way", async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response("busy", { status: 503 }))
+      .mockResolvedValueOnce(Response.json({ choices: [{ message: { content: "{}" } }] }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const pending = getProvider({ GROQ_API_KEY: "k" })!.completeJson([]);
+    await vi.advanceTimersByTimeAsync(3000);
+    await expect(pending).resolves.toBe("{}");
+    vi.useRealTimers();
+  });
+
+  it("waits as long as the server asks, from the header or the error text, within a cap", () => {
+    expect(retryDelayMs("4", "", 0)).toBe(4500);
+    expect(retryDelayMs(null, "Please try again in 1.5s. Need more tokens?", 0)).toBe(2000);
+    expect(retryDelayMs(null, "", 0)).toBe(3000);
+    expect(retryDelayMs(null, "", 1)).toBe(6000);
+    expect(retryDelayMs("120", "", 0)).toBe(20000);
   });
 
   it("throws an LlmError with the status on other HTTP errors", async () => {

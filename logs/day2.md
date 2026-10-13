@@ -20,7 +20,9 @@ held the LLM to a stricter bar than accuracy (see "confident mistakes" below).
 Everything below came out of that one prompt, plus Claude Code reading its own
 eval output and deciding what to try next. I reviewed the decisions after.
 
-(add any follow-ups here)
+2. "yeah commit" (after reading the results)
+3. "you have checked out the .env.local are those api keys working?" That one
+   turned into Day 3's first job, see day3.md.
 
 ## What got built
 
@@ -106,15 +108,31 @@ LLM it's 17. Fewer flags is only good if the unflagged ones are right.
 ## Still to do
 
 - [ ] Review the 60 labels by hand (carried over from Day 1, still not done).
-- [ ] Add `GROQ_API_KEY` to the Vercel project settings, otherwise the live site
+- [x] Add `GROQ_API_KEY` to the Vercel project settings, otherwise the live site
       runs in keyword mode.
 - [ ] Build a small held-out set of messages I never tune against. Every number
       so far is on the same 60.
 
 ## Habit I dropped today
 
-(to fill in)
+Trusting one good number. My old instinct would have been to see 96.7% for
+prompt v2, call it an improvement and move on. Running every prompt three times
+showed the same prompt also scoring 91.7%, and that v2 was no better than v1 on
+average. I now treat a single run as an anecdote, and that rule went into
+directive.md so the AI follows it too.
+
+I also stopped treating "it looks fine in my head" as a UI review. The UI was
+checked in a real browser at phone and desktop width before I called it done.
 
 ## What surprised me
 
-(to fill in)
+Two things. First, the model name the AI picked from memory didn't exist
+anymore. If it hadn't checked Groq's model list before running, the whole day
+would have quietly run on the keyword fallback and the numbers would have meant
+nothing.
+
+Second, the better model was worse in the way that matters. The LLM got 94%
+against 75% for keywords, but when it was wrong it said it was 95% sure, while
+the keyword rules were usually unsure when they were wrong. For a tool whose
+safety depends on a person reviewing the risky ones, "less often wrong but
+confident about it" is a real trade-off, not an upgrade.

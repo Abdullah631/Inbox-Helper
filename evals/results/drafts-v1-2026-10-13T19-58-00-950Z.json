@@ -1,0 +1,440 @@
+{
+  "runAt": "2026-10-13T19:58:00.950Z",
+  "classifiedBy": "evals/results/llm-v1-2026-10-13T19-02-24-008Z.json",
+  "seconds": 98.2,
+  "drafts": [
+    {
+      "id": "m01",
+      "reply": "Hi [NAME], thanks for letting us know. I’ll check the calendar and get back to you with a Friday afternoon slot shortly. Talk soon, [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m02",
+      "reply": "Hi [NAME], great, we’ve noted your confirmation for the 3 pm GMT call tomorrow. Looking forward to speaking with you. Best, [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m03",
+      "reply": "Hi [NAME], thanks for sharing your availability. I’ll coordinate with the team and propose a slot that fits your Mon/Wed/Fri windows. I’ll follow up soon. Best, [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m04",
+      "reply": "Hi [NAME], sorry to hear you’re unwell. I’ll look for another slot this week and send you options shortly. Get well soon! Best, [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m05",
+      "reply": "Hi [NAME], apologies for the missing invite. I’ll resend the calendar entry for Monday right away. Let me know if you have any questions. Best, [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m06",
+      "reply": "Hi [NAME], the 9 am slot is in our office time zone (UTC+0). I can adjust to your IST (UTC+5:30) if needed—just let me know what works best. Best, [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m07",
+      "reply": "Hi [NAME], no problem. I’ll check the calendar for other openings and send you a few alternatives shortly. Thanks for the heads‑up! Best, [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m08",
+      "reply": "Hi [NAME], thanks for reaching out. I’ve forwarded your inquiry to the hiring team and will let you know as soon as we have an update on the backend role. Appreciate your patience. Best, [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m09",
+      "reply": "Hi [NAME], I appreciate your patience after the final interview. I’ve asked the team for the next‑step timeline and will get back to you as soon as I hear more. Best, [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m10",
+      "reply": "Hi [NAME], thanks for checking in. The role is still under review and I’ll let you know promptly once we have a decision. Appreciate your interest. Best, [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m11",
+      "reply": "Hi, thanks for checking in. I’ll review the results of your take‑home and let you know the outcome as soon as possible. Appreciate your patience. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m12",
+      "reply": "Hi, I understand the timing is important. I’ll check on your application status and get back to you shortly, especially given your other process. Thanks for your patience. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m13",
+      "reply": "Hi, thanks for asking about the timeline. I’ll coordinate with the team and let you know when we expect to make a decision for the frontend role. Stay tuned. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m14",
+      "reply": "Hi, I appreciate your continued interest. I’ll check on any updates and share them with you as soon as I have them. Thank you for your patience. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m15",
+      "reply": "Hi, thank you for your question. I’ll forward this to the hiring team and get back to you personally soon. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m16",
+      "reply": "Hi, thank you for your question. I’ll forward this to the hiring team and get back to you personally soon. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m17",
+      "reply": "Hi, thank you for your question. I’ll forward this to the hiring team and get back to you personally soon. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m18",
+      "reply": "Hi, thank you for your question. I’ll forward this to the hiring team and get back to you personally soon. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m19",
+      "reply": "Hi, thank you for your question. I’ll forward this to the hiring team and get back to you personally soon. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m20",
+      "reply": "Hi, thank you for your question. I’ll forward this to the hiring team and get back to you personally soon. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m21",
+      "reply": "Hi [NAME],\nThanks for letting us know you’d like to withdraw your application. I’ll update our records and will be in touch if we need anything further.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m22",
+      "reply": "Hi [NAME],\nCongratulations on your new role, and thank you for informing us. I’ll note your decision and will follow up personally if needed.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m23",
+      "reply": "Hi [NAME],\nI appreciate you letting us know you’ve decided not to proceed. I’ll update your status and will be in touch if anything changes.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m24",
+      "reply": "Hi [NAME],\nThank you for sharing your situation. I’ll pause your application and will reach out personally should anything shift.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m25",
+      "reply": "Hi [NAME],\nYour request to be removed from our candidate list has been noted. I’ll confirm once it’s completed.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m26",
+      "reply": "Hi [NAME],\nI’m glad you enjoyed meeting the team. Thanks for letting us know you’re not looking to move forward. I’ll update our records.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m27",
+      "reply": "Hi [NAME],\nThanks for sending your updated CV. I’ve received the attachment and will share it with the hiring team. I’ll let you know if we need anything else.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m28",
+      "reply": "Hi [NAME],\nAppreciate you sharing your portfolio link. I’ll review it and get back if we need any additional information.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m29",
+      "reply": "Hi [NAME],\nThank you for providing the two references. I’ll add them to your file and let the team know. I’ll reach out if we have any follow‑up questions.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m30",
+      "reply": "Hi [NAME],\nThanks for asking about the background‑check documents. We typically need a copy of a government‑issued ID (passport or national ID) and any relevant work‑authorization paperwork. I’ll follow up shortly with the exact list.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m31",
+      "reply": "Hi,\nThanks for sending your cover letter. I’ve added it to your application and will review it shortly. I’ll be in touch if we need anything else.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m32",
+      "reply": "Hi,\nAppreciate you sharing your GitHub profile and the payments repo link. I’ll take a look and keep it on file for the next steps.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m33",
+      "reply": "Hi,\nThanks for attaching your AWS certificates and transcript. I’ve added them to your candidate file and will review them soon.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m34",
+      "reply": "Hi,\nYou can forward her CV to [EMAIL_ADDRESS] or simply reply to this thread with the attachment. We’ll make sure it’s reviewed for the DevOps role.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m35",
+      "reply": "Hi,\nYour friend is welcome to apply directly through our careers portal at [JOB_LINK]. If you’d like, you can also send her resume to [EMAIL_ADDRESS] and we’ll forward it internally.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m36",
+      "reply": "Hi,\nYes, we have a referral program. I’ll send you the details and next steps shortly so you can refer the engineers you have in mind.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m37",
+      "reply": "Hi,\nThank you for recommending Ahmed. Please feel free to share his contact details or forward his resume, and I’ll reach out to discuss the opportunity.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m38",
+      "reply": "Hi,\nThanks for sending your resume and letting us know Tom referred you. I’ve added the note to your profile and will review your application.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m39",
+      "reply": "Hi,\nWe do have openings for data roles. I’ll forward you a link to our current listings so you can share it with your contact.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m40",
+      "reply": "Hi,\nThe role can be [REMOTE/HYBRID] depending on the candidate’s location. I’ll confirm the exact setup for you shortly.\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m41",
+      "reply": "Hi [NAME], thanks for reaching out! Our team works with a modern stack that includes [TECH_STACK] and we’re currently a group of about [TEAM_SIZE] engineers. I’ll send you a detailed overview shortly. Let me know if you have any other questions. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m42",
+      "reply": "Hi [NAME], great question. We do consider visa sponsorship for eligible candidates, depending on the role and location. I’ll have our HR team confirm the specifics for this position and get back to you. Feel free to ask anything else. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m43",
+      "reply": "Hi [NAME], thanks for asking! The interview process typically includes [NUMBER] rounds, with a mix of technical and behavioral discussions, and may include a take‑home assignment. I’ll share the exact steps and timeline soon. Let me know if you need more details. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m44",
+      "reply": "Hi [NAME], I appreciate your interest. Our core hours are [CORE_HOURS] with flexibility, and we aim for some overlap with GMT for collaboration. I’ll send you the full working‑hours policy shortly. Happy to answer any other questions. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m45",
+      "reply": "Hi [NAME], thanks for the curiosity! A typical week involves [KEY_ACTIVITIES] and collaboration with the team on [PROJECTS]. I’ll forward a more detailed week‑in‑the‑life overview. Let me know what else you’d like to know. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m46",
+      "reply": "Hi [NAME], good question. You would report to [MANAGER_TITLE], and our team is a blend of senior and mid‑level engineers, with a strong focus on mentorship. I’ll send you the org chart and more details soon. Feel free to ask further. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m47",
+      "reply": "Hi [NAME], thank you for the kind words! I’m glad you enjoyed our chat. If anything else comes up, just let me know. Looking forward to staying in touch. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m48",
+      "reply": "Hi [NAME], thank you for reaching out. At this time we’re not looking for external sourcing tools. I’ll keep your information on file should our needs change. Best wishes. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m49",
+      "reply": "Hi [NAME], thanks for the 👍! Let me know if you have any questions or need anything else. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m50",
+      "reply": "Hi [NAME], thank you for sharing your feedback about the take‑home. I’ll pass your comments to the team so we can improve the experience. If you have any other thoughts, feel free to let me know. [RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m51",
+      "reply": "Hi [NAME],\n\nThanks for letting us know. I’m sorry for the mix‑up – we’ll look into why you received this email and make sure it’s corrected.\n\nBest,\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m52",
+      "reply": "",
+      "source": "none",
+      "dispute": null
+    },
+    {
+      "id": "m53",
+      "reply": "Hi [NAME],\n\nThanks for reaching out. I’ve noted your request to shift the interview and your question about the salary range. I’ll get back to you shortly with the details.\n\nBest,\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m54",
+      "reply": "Hi [NAME],\n\nCongratulations on the offer! I’ve received your questions about the start date and where to send your ID. I’ll follow up personally with the next steps.\n\nBest,\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m55",
+      "reply": "Hi [NAME],\n\nI’m sorry you’ve had to wait. I’m looking into the status of your application and will get back to you as soon as possible.\n\nBest,\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m56",
+      "reply": "Hola [NAME],\n\nGracias por tu mensaje. Estoy revisando el estado de tu proceso y te responderé en breve.\n\nSaludos,\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m57",
+      "reply": "",
+      "source": "none",
+      "dispute": null
+    },
+    {
+      "id": "m58",
+      "reply": "Hi [NAME],\n\nThanks for your question about relocation support. I’ll check the details for the role and get back to you shortly.\n\nBest,\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m59",
+      "reply": "Hi [NAME],\n\nGreat, I’ve noted that the proposed time works for you. I’ll send a calendar invite shortly.\n\nBest,\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    },
+    {
+      "id": "m60",
+      "reply": "Hi [NAME],\n\nI’ve cancelled your interview as requested. Feel free to reach out when you’re ready to reapply.\n\nBest,\n[RECRUITER_NAME]",
+      "source": "llm",
+      "dispute": null
+    }
+  ],
+  "method": "llm",
+  "model": "openai/gpt-oss-120b",
+  "promptVersion": "v1",
+  "warnings": [],
+  "issueCounts": {
+    "date": 4,
+    "claims_action": 5
+  },
+  "blocked": [
+    {
+      "id": "m01",
+      "kinds": [
+        "date (\"Friday\")"
+      ],
+      "reply": "Hi [NAME], thanks for letting us know. I’ll check the calendar and get back to you with a Friday afternoon slot shortly. Talk soon, [RECRUITER_NAME]"
+    },
+    {
+      "id": "m02",
+      "kinds": [
+        "date (\"3 pm\")"
+      ],
+      "reply": "Hi [NAME], great, we’ve noted your confirmation for the 3 pm GMT call tomorrow. Looking forward to speaking with you. Best, [RECRUITER_NAME]"
+    },
+    {
+      "id": "m05",
+      "kinds": [
+        "date (\"Monday\")"
+      ],
+      "reply": "Hi [NAME], apologies for the missing invite. I’ll resend the calendar entry for Monday right away. Let me know if you have any questions. Best, [RECRUITER_NAME]"
+    },
+    {
+      "id": "m06",
+      "kinds": [
+        "date (\"9 am\")"
+      ],
+      "reply": "Hi [NAME], the 9 am slot is in our office time zone (UTC+0). I can adjust to your IST (UTC+5:30) if needed—just let me know what works best. Best, [RECRUITER_NAME]"
+    },
+    {
+      "id": "m08",
+      "kinds": [
+        "claims_action (\"I've forwarded\")"
+      ],
+      "reply": "Hi [NAME], thanks for reaching out. I’ve forwarded your inquiry to the hiring team and will let you know as soon as we have an update on the backend role. Appreciate your patience. Best, [RECRUITER_NAME]"
+    },
+    {
+      "id": "m31",
+      "kinds": [
+        "claims_action (\"I've added\")"
+      ],
+      "reply": "Hi,\nThanks for sending your cover letter. I’ve added it to your application and will review it shortly. I’ll be in touch if we need anything else.\n[RECRUITER_NAME]"
+    },
+    {
+      "id": "m33",
+      "kinds": [
+        "claims_action (\"I've added\")"
+      ],
+      "reply": "Hi,\nThanks for attaching your AWS certificates and transcript. I’ve added them to your candidate file and will review them soon.\n[RECRUITER_NAME]"
+    },
+    {
+      "id": "m38",
+      "kinds": [
+        "claims_action (\"I've added\")"
+      ],
+      "reply": "Hi,\nThanks for sending your resume and letting us know Tom referred you. I’ve added the note to your profile and will review your application.\n[RECRUITER_NAME]"
+    },
+    {
+      "id": "m60",
+      "kinds": [
+        "claims_action (\"I've cancelled\")"
+      ],
+      "reply": "Hi [NAME],\n\nI’ve cancelled your interview as requested. Feel free to reach out when you’re ready to reapply.\n\nBest,\n[RECRUITER_NAME]"
+    }
+  ]
+}
