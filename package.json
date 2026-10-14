@@ -11,7 +11,9 @@
     "test:watch": "vitest",
     "eval": "tsx scripts/run-eval.ts",
     "typecheck": "tsc --noEmit",
-    "eval:drafts": "tsx scripts/run-draft-eval.ts"
+    "eval:drafts": "tsx scripts/run-draft-eval.ts",
+    "redteam": "tsx scripts/run-redteam.ts",
+    "eval:critic": "tsx scripts/run-critic-eval.ts"
   },
   "dependencies": {
     "next": "15.5.27",

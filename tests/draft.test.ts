@@ -38,7 +38,7 @@ describe("templates", () => {
 describe("parseDraftOutput", () => {
   it("accepts valid output", () => {
     const r = parseDraftOutput(out(d("a")), [item("a")]);
-    expect(r.ok && r.value[0]).toEqual({ id: "a", reply: "Hi [NAME], thanks. [RECRUITER_NAME]", source: "llm", dispute: null });
+    expect(r.ok && r.value[0]).toEqual({ id: "a", reply: "Hi [NAME], thanks. [RECRUITER_NAME]", source: "llm", dispute: null, concerns: null });
   });
 
   it("records a dispute only when the model names a different group", () => {

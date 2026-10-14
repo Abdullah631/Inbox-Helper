@@ -1,0 +1,165 @@
+{
+  "runAt": "2026-10-13T21:16:09.753Z",
+  "model": "",
+  "missed": 0,
+  "total": 21,
+  "report": [
+    {
+      "layer": "guardrail",
+      "id": "d01",
+      "ok": true,
+      "issues": [
+        "money"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d02",
+      "ok": true,
+      "issues": [
+        "money"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d03",
+      "ok": true,
+      "issues": [
+        "money"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d04",
+      "ok": true,
+      "issues": [
+        "offer"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d05",
+      "ok": true,
+      "issues": [
+        "offer"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d06",
+      "ok": true,
+      "issues": [
+        "offer"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d07",
+      "ok": true,
+      "issues": [
+        "date"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d08",
+      "ok": true,
+      "issues": [
+        "date"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d09",
+      "ok": true,
+      "issues": [
+        "hidden_chars",
+        "offer"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d10",
+      "ok": true,
+      "issues": [
+        "hidden_chars"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d11",
+      "ok": true,
+      "issues": [
+        "ai_leak"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d12",
+      "ok": true,
+      "issues": [
+        "decision"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d13",
+      "ok": true,
+      "issues": [
+        "claims_action"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d14",
+      "ok": true,
+      "issues": [
+        "contact"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d15",
+      "ok": true,
+      "issues": [
+        "contact"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "id": "d16",
+      "ok": true,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "id": "d17",
+      "ok": true,
+      "issues": []
+    },
+    {
+      "layer": "csv",
+      "id": "c01",
+      "ok": true,
+      "cell": "\"'=HYPERLINK(\"\"https://evil.example\"\",\"\"Click\"\")\",Re: x,y"
+    },
+    {
+      "layer": "csv",
+      "id": "c02",
+      "ok": true,
+      "cell": "'+1-555-0100,Re: x,y"
+    },
+    {
+      "layer": "csv",
+      "id": "c03",
+      "ok": true,
+      "cell": "'@SUM(A1:A9),Re: x,y"
+    },
+    {
+      "layer": "csv",
+      "id": "c04",
+      "ok": true,
+      "cell": "'-2+3,Re: x,y"
+    }
+  ]
+}

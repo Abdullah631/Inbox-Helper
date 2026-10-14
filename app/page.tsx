@@ -15,7 +15,7 @@ import { TEMPLATES } from "@/lib/templates";
 
 type Mode = "auto" | "llm" | "keyword";
 type Config = { llmAvailable: boolean; provider: string | null; model: string | null; promptVersion: string | null };
-type RunInfo = { method: string; model?: string; promptVersion?: string; seconds: number };
+type RunInfo = { method: string; model?: string; promptVersion?: string; seconds: number; reviewer?: string };
 type Filter = "all" | "review" | "todo" | "done" | Intent;
 type Stage = { label: string; done: number; total: number };
 
@@ -24,6 +24,9 @@ const CLASSIFY_CHUNK = 20;
 const DRAFT_CHUNK = 10;
 const MODE_KEY = "inbox-helper-mode";
 const NAME_KEY = "inbox-helper-recruiter";
+// Review work survives a refresh (Day 4). Bump the version if the saved shape changes.
+const SESSION_KEY = "inbox-helper-session-v1";
+type Session = { messages: Message[]; classes: Record<string, Classification>; reviews: Record<string, ReviewState>; run: RunInfo; savedAt: string };
 
 const INTENT_COLOR: Record<Intent, string> = {
   scheduling: "#3b82f6",
@@ -67,6 +70,7 @@ export default function Home() {
   const [stage, setStage] = useState<Stage | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
   const [recruiter, setRecruiter] = useState("");
+  const [restoredAt, setRestoredAt] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -75,8 +79,28 @@ export default function Home() {
       const saved = localStorage.getItem(MODE_KEY);
       if (saved === "auto" || saved === "llm" || saved === "keyword") setMode(saved);
       setRecruiter(localStorage.getItem(NAME_KEY) ?? "");
+      const savedSession = localStorage.getItem(SESSION_KEY);
+      if (savedSession) {
+        const session = JSON.parse(savedSession) as Session;
+        if (session.messages?.length && session.run) {
+          setMessages(session.messages);
+          setClasses(session.classes);
+          setReviews(session.reviews);
+          setRun(session.run);
+          setRestoredAt(session.savedAt);
+        }
+      }
     } catch {}
   }, []);
+
+  // Save after every change once there's something sorted. Never while a run is going.
+  useEffect(() => {
+    if (!run || stage || !messages.length) return;
+    try {
+      const session: Session = { messages, classes, reviews, run, savedAt: new Date().toISOString() };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    } catch {}
+  }, [messages, classes, reviews, run, stage]);
 
   // If AI isn't configured on the server, don't leave the user on a mode that will fail.
   const effectiveMode: Mode = mode === "llm" && config && !config.llmAvailable ? "auto" : mode;
@@ -106,6 +130,8 @@ export default function Home() {
 
   function reset() {
     setMessages([]); setClasses({}); setReviews({}); setRun(null); setErrors([]); setWarnings([]); setFilter("all");
+    setRestoredAt(null);
+    try { localStorage.removeItem(SESSION_KEY); } catch {}
   }
 
   async function sortAndDraft() {
@@ -142,6 +168,7 @@ export default function Home() {
         });
         runWarnings.push(...data.warnings);
         applyDrafts(chunk, data.drafts as Draft[]);
+        if (data.reviewerModel) setRun((r) => (r ? { ...r, reviewer: data.reviewerModel } : r));
       }
     } catch (e) {
       setErrors((prev) => [...prev, (e as Error).message]);
@@ -319,6 +346,13 @@ export default function Home() {
           </div>
         )}
 
+        {restoredAt && groups && (
+          <div className="alert alert-warn restored" role="status">
+            <span>Picked up where you left off (saved {new Date(restoredAt).toLocaleString()}).</span>
+            <button type="button" className="btn btn-sm" onClick={reset}>Start over</button>
+          </div>
+        )}
+
         {groups && run ? (
           <>
             <div className="stats">
@@ -342,7 +376,10 @@ export default function Home() {
               <div className="card stat">
                 <div className="stat-label">Sorted by</div>
                 <div className="stat-value small">{run.method === "llm" ? run.model : "Keyword rules"}</div>
-                <div className="stat-sub">{run.method === "llm" ? `prompt ${run.promptVersion}, ` : ""}{run.seconds.toFixed(1)}s to sort</div>
+                <div className="stat-sub">
+                  {run.method === "llm" ? `prompt ${run.promptVersion}, ` : ""}{run.seconds.toFixed(1)}s to sort
+                  {run.reviewer && <><br />drafts checked by {run.reviewer}</>}
+                </div>
               </div>
             </div>
 
@@ -394,6 +431,7 @@ export default function Home() {
                         item={item}
                         review={reviews[id]}
                         onText={(text) => updateReview(id, { text })}
+                        onAcknowledge={(acknowledged) => updateReview(id, { acknowledged })}
                         onStatus={(status) => updateReview(id, { status })}
                         onReset={() => updateReview(id, { text: reviews[id].original })}
                         onMove={(intent) => moveTo(id, intent)}

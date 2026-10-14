@@ -7,7 +7,7 @@ import { approvalCheck, type ReviewStatus } from "@/lib/review";
 import type { Draft, Flag } from "@/lib/schema";
 import { INJECTION_NOTE } from "@/lib/templates";
 
-export type ReviewState = { draft: Draft; text: string; original: string; status: ReviewStatus };
+export type ReviewState = { draft: Draft; text: string; original: string; status: ReviewStatus; acknowledged?: boolean };
 
 const FLAG_UI: Record<Flag, { label: string; tone: string }> = {
   possible_injection: { label: "Possible injection", tone: "badge-danger" },
@@ -28,13 +28,14 @@ type Props = {
   item: GroupedItem;
   review?: ReviewState;
   onText: (text: string) => void;
+  onAcknowledge: (value: boolean) => void;
   onStatus: (status: ReviewStatus) => void;
   onReset: () => void;
   onMove: (intent: Intent) => void;
   onKeepGroup: () => void;
 };
 
-export function MessageCard({ item, review, onText, onStatus, onReset, onMove, onKeepGroup }: Props) {
+export function MessageCard({ item, review, onText, onAcknowledge, onStatus, onReset, onMove, onKeepGroup }: Props) {
   const { message: m, classification: c } = item;
   const pct = Math.round(c.confidence * 100);
   const tone = review?.status === "approved" ? " approved" : review?.status === "rejected" ? " rejected"
@@ -82,19 +83,35 @@ export function MessageCard({ item, review, onText, onStatus, onReset, onMove, o
         </div>
       )}
 
-      {review ? <DraftEditor review={review} onText={onText} onStatus={onStatus} onReset={onReset} /> : null}
+      {review ? <DraftEditor review={review} onText={onText} onAcknowledge={onAcknowledge} onStatus={onStatus} onReset={onReset} /> : null}
     </article>
   );
 }
 
-function DraftEditor({ review, onText, onStatus, onReset }: Pick<Props, "onText" | "onStatus" | "onReset"> & { review: ReviewState }) {
+const CONCERN_LABEL: Record<string, string> = {
+  money: "May mention or promise pay",
+  offer: "May imply an offer",
+  decision: "May state a hiring decision",
+  date: "Names a day or time",
+  claims_action: "Says something was already done",
+  company_fact: "States a company fact",
+  contact: "Has a link or contact detail",
+  ai: "Mentions being an AI",
+};
+
+function DraftEditor({ review, onText, onAcknowledge, onStatus, onReset }: Pick<Props, "onText" | "onAcknowledge" | "onStatus" | "onReset"> & { review: ReviewState }) {
   const check = approvalCheck(review.text);
   const done = review.status !== "pending";
+  const concerns = review.draft.concerns ?? [];
+  const needsAck = concerns.length > 0 && !review.acknowledged;
+  const canApprove = check.canApprove && !needsAck;
   const blockedReason = check.issues.length
     ? "Fix the problems listed before approving."
     : check.placeholders.length
       ? `Fill in ${check.placeholders.join(", ")} first.`
-      : "";
+      : needsAck
+        ? "Tick that you've checked the AI reviewer's notes."
+        : "";
 
   if (review.status === "rejected") {
     return (
@@ -140,12 +157,33 @@ function DraftEditor({ review, onText, onStatus, onReset }: Pick<Props, "onText"
         </ul>
       )}
 
+      {!done && concerns.length > 0 && (
+        <div className="concerns">
+          <div className="concerns-head">
+            AI reviewer notes
+            {review.text !== review.original && <span> &middot; found before your edits</span>}
+          </div>
+          <ul>
+            {concerns.map((c, i) => (
+              <li key={i}>{CONCERN_LABEL[c.kind] ?? c.kind}{c.quote && <>: <q>{c.quote}</q></>}</li>
+            ))}
+          </ul>
+          <label className="ack">
+            <input type="checkbox" checked={Boolean(review.acknowledged)} onChange={(e) => onAcknowledge(e.target.checked)} />
+            I&apos;ve checked these
+          </label>
+        </div>
+      )}
+      {!done && review.draft.source === "llm" && review.draft.concerns === null && (
+        <p className="draft-unchecked">Not checked by the AI reviewer. Read it carefully.</p>
+      )}
+
       <div className="draft-actions">
         {done ? (
           <button type="button" className="btn btn-sm" onClick={() => onStatus("pending")}>Edit again</button>
         ) : (
           <>
-            <button type="button" className="btn btn-sm btn-primary" disabled={!check.canApprove} title={blockedReason || "Approve this reply"}
+            <button type="button" className="btn btn-sm btn-primary" disabled={!canApprove} title={blockedReason || "Approve this reply"}
               onClick={() => onStatus("approved")}>
               Approve
             </button>

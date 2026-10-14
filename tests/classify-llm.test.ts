@@ -118,6 +118,11 @@ describe("classifyInbox", () => {
     await expect(classifyInbox([msg("a")], "llm", { provider: null })).rejects.toBeInstanceOf(NoProviderError);
   });
 
+  it("doesn't name a model when none answered", async () => {
+    const r = await classifyInbox([msg("a")], "llm", { provider: fakeProvider(new Error("down")), prompt });
+    expect(r.model).toBe("no model answered");
+  });
+
   it("reports provider, model and prompt version in llm mode", async () => {
     const r = await classifyInbox([msg("a")], "llm", { provider: fakeProvider(reply(ok("a"))), prompt });
     expect(r).toMatchObject({ method: "llm", provider: "groq", model: "fake", promptVersion: "v0" });

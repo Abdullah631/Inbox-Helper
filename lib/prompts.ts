@@ -10,7 +10,7 @@ export type Prompt = { name: string; version: string; text: string };
 
 // The version the app actually uses. The newest file is not automatically the best one:
 // classify v2 scored the same as v1 on average but varied more between runs (see logs/day2.md).
-export const ACTIVE_PROMPTS = { classify: "v1", draft: "v2" } as const;
+export const ACTIVE_PROMPTS = { classify: "v1", draft: "v2", critic: "v2" } as const;
 
 export function listVersions(name: string, dir = PROMPTS_DIR): string[] {
   return readdirSync(dir)

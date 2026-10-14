@@ -315,3 +315,14 @@ main { padding: 28px 0 80px; }
 .review-progress { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-2); }
 .review-progress .progress { width: 120px; }
 .stat-of { font-size: 0.95rem; color: var(--muted); font-weight: 500; }
+
+/* AI reviewer notes (Day 4) */
+.concerns { margin-top: 8px; padding: 8px 10px; border-radius: 6px; background: var(--warn-soft); color: var(--warn); font-size: 0.82rem; }
+.concerns-head { font-weight: 600; margin-bottom: 4px; }
+.concerns-head span { font-weight: 400; }
+.concerns ul { margin: 0 0 6px 18px; }
+.concerns q { font-style: italic; }
+.ack { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text); }
+.ack input { width: 15px; height: 15px; accent-color: var(--accent); }
+.draft-unchecked { margin-top: 8px; font-size: 0.8rem; color: var(--muted); }
+.restored { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }

@@ -32,11 +32,12 @@ export async function classifyInbox(messages: Message[], mode: Mode, deps: Deps 
 
   const prompt = deps.prompt ?? loadPrompt("classify", process.env.CLASSIFY_PROMPT_VERSION || ACTIVE_PROMPTS.classify);
   const { classifications, warnings } = await classifyWithLlm(messages, provider, prompt);
+  const answered = classifications.some((c) => c.method === "llm");
   return {
     classifications,
     method: "llm",
     provider: provider.name,
-    model: provider.model,
+    model: answered ? provider.model : "no model answered",
     promptVersion: prompt.version,
     warnings,
   };

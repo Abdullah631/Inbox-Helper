@@ -67,6 +67,17 @@ session. I'll keep editing it through the week; git history has every version.
   safety check without measuring it.
 - Anything that can remove a "needs a person" flag needs its own rule and test.
 
+## Held-out data and attacks
+
+- Numbers on `data/sample-inbox.json` are for iterating. Numbers on
+  `data/holdout.json` are for reporting. Never change a prompt, rule or model
+  because of a held-out result, or it stops being held-out.
+- An eval run with any fallbacks is not a score. The scripts refuse it.
+- After fixing what a red-team found, write a new round before claiming it's
+  fixed. Report the new round's number.
+- A safety check that a second model performs should be done by a different
+  model when one is available, and the UI should say which one did it.
+
 ## Writing docs and logs
 
 The README, intent, directive, daily logs and the unlearning note are things

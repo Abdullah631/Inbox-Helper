@@ -37,8 +37,15 @@ npm run eval                            # keyword classifier vs. the labeled sam
 npm run eval -- --llm                   # LLM with the active prompt (needs a key)
 npm run eval -- --llm --prompt v2       # LLM with a specific prompt version
 npm run eval:drafts -- --from evals/results/<run>.json   # drafts on a saved classification
+npm run eval -- --llm --data data/holdout.json   # the held-out set (report these numbers)
+npm run eval:critic -- --provider gemini          # the AI reviewer on red-team and real drafts
+npm run redteam                         # guardrail and CSV attacks (add --llm for message attacks)
 npx tsx scripts/check-provider.ts groq  # two real messages through one provider
 ```
+
+`data/sample-inbox.json` is for iterating. `data/holdout.json` is never tuned
+against, so its numbers are the honest ones. Any run where the model failed and
+keywords stood in is marked invalid and left out of the history.
 
 Every run is saved to `evals/results/` and gets one line in `evals/history.csv`
 (or `evals/drafts-history.csv`). The draft eval also writes
@@ -56,11 +63,18 @@ of 0.5 or more, which would not get flagged for review.
 
 ## Guardrails on drafts
 
-Every draft is checked in code before it can be approved, and again on every
-edit (`lib/guardrails.ts`). Approve stays locked if a draft mentions a pay
-figure, sounds like an offer or a hiring decision, names a day, date or time,
-claims something was already done, states a company policy, talks about being
-an AI, runs over 120 words, or still has a [PLACEHOLDER] in it.
+Every draft goes through two checks before it can be approved.
+
+1. Code rules (`lib/guardrails.ts`), run again on every edit. Approve is locked
+   if a draft mentions a pay figure, sounds like an offer or a hiring decision,
+   names a day, date or time, claims something was already done, states a
+   company policy, has a link or email address, contains invisible or
+   look-alike characters, talks about being an AI, runs over 120 words, or
+   still has a [PLACEHOLDER] in it.
+2. An AI reviewer (`lib/critic.ts`): a second model reads every AI draft and
+   lists risks by meaning, which catches phrasings the code rules miss. Its
+   notes have to be ticked as checked before Approve unlocks. It's wrong about
+   1 time in 10, so it doesn't hard-block.
 
 Messages flagged as injection attempts never go to the model for a draft. A
 person writes that reply.
@@ -85,9 +99,9 @@ Each message can also get flags:
 app/            the page, /api/classify, /api/draft and /api/config
 components/     header, theme toggle, segmented control, message card with reply editor
 lib/            the logic: classifiers, drafting, guardrails, templates, review helpers, scoring
-prompts/        classify.v1-2, draft.v1-2 (never edited once used)
-data/           sample-inbox.json, 60 labeled messages
-scripts/        run-eval.ts, run-draft-eval.ts, check-provider.ts
+prompts/        classify.v1-2, draft.v1-2, critic.v1-2 (never edited once used)
+data/           sample-inbox.json (60), holdout.json (30, never tuned on), redteam.json
+scripts/        evals, red-team, provider check
 evals/results/  saved eval runs
 tests/          unit tests
 logs/           one log per day
@@ -97,40 +111,44 @@ logs/           one log per day
 
 1. Push the repo to GitHub.
 2. On vercel.com, choose Add New Project, import the repo and deploy. The defaults work.
-3. Add `GROQ_API_KEY` in Settings, Environment Variables, then redeploy. Without
-   it the live site runs in keyword mode.
+3. Add `GROQ_API_KEY` and `GEMINI_API_KEY` in Settings, Environment Variables,
+   then redeploy. Groq is used first; Gemini takes over if Groq fails. Without
+   either, the live site runs in keyword mode.
+4. Recommended: add a rate-limit rule for `/api/*` in the Vercel Firewall. The
+   app's own per-IP limit only counts requests on one server instance.
 
-Live URL: not deployed yet.
+Live URL: https://inbox-helper-alpha.vercel.app
 
 ## Where it stands
 
-Sorting:
+Sorting accuracy (mean of 3 runs unless noted):
 
-| | Accuracy | Confident mistakes | Notes |
-|---|---|---|---|
-| Keywords (Day 1) | 75% | 4 | Wrong often, but usually unsure when wrong |
-| LLM, prompt v1 (Day 2, active) | 94.4% mean of 3 runs | 3 every run | gpt-oss-120b on Groq |
-| LLM, prompt v2 (Day 2) | 94.4% mean of 3 runs | 2 to 5 | More variance, not adopted |
+| | Sample set (60) | Held-out (30, never tuned on) |
+|---|---|---|
+| Keywords | 75.0% | 26.7% |
+| Groq gpt-oss-120b, prompt v1 | 94.4% | 83.3% (1 valid run) |
+| Gemini 3.5 Flash-Lite, prompt v1 | 94.4% | 81.1% |
 
-Drafting (Day 3, same 58 drafts each run):
+Drafting:
 
-| | Drafts blocked by guardrails | Confident mistakes caught by dispute |
+| | Drafts blocked by code rules (of 58) | Confident sorting mistakes caught |
 |---|---|---|
 | Draft prompt v1 | 10 to 12 | 0 of 3 |
-| Draft prompt v2 (active) | 5 every run | 0 or 1 of 3 |
+| Draft prompt v2 (active) | 5 | 0 or 1 of 3 |
 
-The labels were drafted by AI and I haven't checked them all yet, so treat these
-numbers with some suspicion. They're also all on the same 60 messages.
+Red-team: the model stopped 12 of 12 hostile messages. The code rules stop all
+15 first-round attacks they were fixed against, but only 2 of 13 second-round
+ones. The AI reviewer caught all 28. The CSV export defuses formula injection.
+
+All labels were drafted by AI and haven't been checked by a person yet, so
+treat every number here with some suspicion.
 
 Known gaps:
 
-- The LLM is sometimes confidently wrong, and the dispute check only catches
-  that occasionally. A wrong group still gets a reviewed reply, but it may not
-  get the extra attention it needs.
-- Groq's free tier allows 8,000 tokens a minute. Sorting and drafting 60
-  messages takes around two and a half minutes because of that.
-- Review progress is lost on refresh.
-- The model invents company facts now and then. The guardrail catches the
-  common shapes ("we do have a referral program") but not every phrasing.
-- The keyword rules only understand English. One message gets one group. No
-  thread context, so "Ok that works for me" can't be placed reliably.
+- The LLM is sometimes confidently wrong (about 1 in 6 on held-out messages),
+  and nothing reliably catches that yet. Every reply is still reviewed.
+- The AI reviewer raises a false alarm on about 1 in 10 good drafts.
+- Groq's free tier allows 200,000 tokens a day for this model, shared between
+  the live site and my evals. When it runs out, Gemini takes over.
+- The per-IP rate limit is in memory, so it only slows down one script.
+- One message gets one group. No thread context.

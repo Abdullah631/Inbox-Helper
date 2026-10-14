@@ -1,0 +1,581 @@
+{
+  "classifications": [
+    {
+      "id": "h01",
+      "intent": "status_check",
+      "confidence": 0.33,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "Keyword score 2 for status_check; runner-up question (1).",
+      "method": "fallback"
+    },
+    {
+      "id": "h02",
+      "intent": "other",
+      "confidence": 0.3,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "No keyword rules matched.",
+      "method": "fallback"
+    },
+    {
+      "id": "h03",
+      "intent": "question",
+      "confidence": 0.25,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "Keyword score 1 for question.",
+      "method": "fallback"
+    },
+    {
+      "id": "h04",
+      "intent": "other",
+      "confidence": 0.3,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "No keyword rules matched.",
+      "method": "fallback"
+    },
+    {
+      "id": "h05",
+      "intent": "scheduling",
+      "confidence": 0.13,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "Keyword score 1 for scheduling; runner-up question (1).",
+      "method": "fallback"
+    },
+    {
+      "id": "h06",
+      "intent": "documents",
+      "confidence": 0.57,
+      "flags": [],
+      "reason": "Keyword score 4 for documents; runner-up question (3).",
+      "method": "fallback"
+    },
+    {
+      "id": "h07",
+      "intent": "offer_compensation",
+      "confidence": 0.33,
+      "flags": [
+        "needs_human",
+        "low_confidence"
+      ],
+      "reason": "Keyword score 2 for offer_compensation; runner-up question (1).",
+      "method": "fallback"
+    },
+    {
+      "id": "h08",
+      "intent": "other",
+      "confidence": 0.3,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "No keyword rules matched.",
+      "method": "fallback"
+    },
+    {
+      "id": "h09",
+      "intent": "other",
+      "confidence": 0.3,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "No keyword rules matched.",
+      "method": "fallback"
+    },
+    {
+      "id": "h10",
+      "intent": "question",
+      "confidence": 0.25,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "Keyword score 1 for question.",
+      "method": "fallback"
+    },
+    {
+      "id": "h11",
+      "intent": "documents",
+      "confidence": 0.96,
+      "flags": [],
+      "reason": "Candidate is providing a repo link and asking about access, which is about documents.",
+      "method": "llm"
+    },
+    {
+      "id": "h12",
+      "intent": "scheduling",
+      "confidence": 0.94,
+      "flags": [],
+      "reason": "Candidate requests a phone call at a specific time, a scheduling request.",
+      "method": "llm"
+    },
+    {
+      "id": "h13",
+      "intent": "withdrawal",
+      "confidence": 0.97,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "Candidate thanks and states they are staying with current team, withdrawing.",
+      "method": "llm"
+    },
+    {
+      "id": "h14",
+      "intent": "documents",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "Candidate asks about reference contact details, a document‑related matter.",
+      "method": "llm"
+    },
+    {
+      "id": "h15",
+      "intent": "question",
+      "confidence": 0.93,
+      "flags": [],
+      "reason": "Candidate asks for feedback after a failed interview, a question about the process.",
+      "method": "llm"
+    },
+    {
+      "id": "h16",
+      "intent": "question",
+      "confidence": 0.94,
+      "flags": [],
+      "reason": "Candidate requests accessibility accommodations, a question about interview format.",
+      "method": "llm"
+    },
+    {
+      "id": "h17",
+      "intent": "scheduling",
+      "confidence": 0.92,
+      "flags": [],
+      "reason": "Urgent request to be called back, a scheduling need.",
+      "method": "llm"
+    },
+    {
+      "id": "h18",
+      "intent": "referral",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "Message submits pre‑screened candidate profiles, a referral.",
+      "method": "llm"
+    },
+    {
+      "id": "h19",
+      "intent": "offer_compensation",
+      "confidence": 0.98,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "Candidate negotiates base salary, an offer compensation matter.",
+      "method": "llm"
+    },
+    {
+      "id": "h20",
+      "intent": "question",
+      "confidence": 0.94,
+      "flags": [],
+      "reason": "Candidate asks about equipment for first day, a question about logistics.",
+      "method": "llm"
+    },
+    {
+      "id": "h21",
+      "intent": "question",
+      "confidence": 0.25,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "Keyword score 1 for question.",
+      "method": "fallback"
+    },
+    {
+      "id": "h22",
+      "intent": "question",
+      "confidence": 0.25,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "Keyword score 1 for question.",
+      "method": "fallback"
+    },
+    {
+      "id": "h23",
+      "intent": "status_check",
+      "confidence": 0.33,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "Keyword score 2 for status_check; runner-up question (1).",
+      "method": "fallback"
+    },
+    {
+      "id": "h24",
+      "intent": "scheduling",
+      "confidence": 0.5,
+      "flags": [],
+      "reason": "Keyword score 2 for scheduling.",
+      "method": "fallback"
+    },
+    {
+      "id": "h25",
+      "intent": "question",
+      "confidence": 0.25,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "Keyword score 1 for question.",
+      "method": "fallback"
+    },
+    {
+      "id": "h26",
+      "intent": "question",
+      "confidence": 0.25,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "Keyword score 1 for question.",
+      "method": "fallback"
+    },
+    {
+      "id": "h27",
+      "intent": "other",
+      "confidence": 0.3,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "No keyword rules matched.",
+      "method": "fallback"
+    },
+    {
+      "id": "h28",
+      "intent": "offer_compensation",
+      "confidence": 0.33,
+      "flags": [
+        "needs_human",
+        "low_confidence"
+      ],
+      "reason": "Keyword score 2 for offer_compensation; runner-up question (1).",
+      "method": "fallback"
+    },
+    {
+      "id": "h29",
+      "intent": "other",
+      "confidence": 0.3,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "No keyword rules matched.",
+      "method": "fallback"
+    },
+    {
+      "id": "h30",
+      "intent": "offer_compensation",
+      "confidence": 0.83,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "Keyword score 5 for offer_compensation; runner-up question (1).",
+      "method": "fallback"
+    }
+  ],
+  "method": "llm",
+  "provider": "groq",
+  "model": "openai/gpt-oss-120b",
+  "promptVersion": "v1",
+  "warnings": [
+    "Messages 1-10: HTTP 429: {\"error\":{\"message\":\"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01khz9q4p9ew483e7mp7ay7npe` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 198226, Requested 1965. Please try again in 1m22.512s. Need more tokens? Upgrade to Dev Tier today at https:// Used keywords instead.",
+    "Messages 21-30: HTTP 429: {\"error\":{\"message\":\"Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01khz9q4p9ew483e7mp7ay7npe` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199747, Requested 2894. Please try again in 19m0.912s. Need more tokens? Upgrade to Dev Tier today at https:// Used keywords instead."
+  ],
+  "runAt": "2026-10-13T21:07:26.121Z",
+  "seconds": 157.7,
+  "unverifiedLabels": 30,
+  "report": {
+    "total": 30,
+    "correct": 10,
+    "accuracy": 0.333,
+    "perIntent": [
+      {
+        "intent": "scheduling",
+        "precision": 0.75,
+        "recall": 0.429,
+        "support": 7
+      },
+      {
+        "intent": "status_check",
+        "precision": 0,
+        "recall": 0,
+        "support": 3
+      },
+      {
+        "intent": "offer_compensation",
+        "precision": 0.75,
+        "recall": 0.6,
+        "support": 5
+      },
+      {
+        "intent": "withdrawal",
+        "precision": 1,
+        "recall": 0.333,
+        "support": 3
+      },
+      {
+        "intent": "documents",
+        "precision": 0.667,
+        "recall": 0.667,
+        "support": 3
+      },
+      {
+        "intent": "referral",
+        "precision": 0,
+        "recall": 0,
+        "support": 2
+      },
+      {
+        "intent": "question",
+        "precision": 0.111,
+        "recall": 0.25,
+        "support": 4
+      },
+      {
+        "intent": "other",
+        "precision": 0,
+        "recall": 0,
+        "support": 3
+      }
+    ],
+    "confusion": {
+      "scheduling": {
+        "scheduling": 3,
+        "status_check": 1,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 0,
+        "question": 2,
+        "other": 1
+      },
+      "status_check": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 0,
+        "question": 1,
+        "other": 2
+      },
+      "offer_compensation": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 3,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 0,
+        "question": 2,
+        "other": 0
+      },
+      "withdrawal": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 1,
+        "documents": 0,
+        "referral": 0,
+        "question": 0,
+        "other": 2
+      },
+      "documents": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 2,
+        "referral": 0,
+        "question": 1,
+        "other": 0
+      },
+      "referral": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 0,
+        "question": 1,
+        "other": 1
+      },
+      "question": {
+        "scheduling": 0,
+        "status_check": 1,
+        "offer_compensation": 1,
+        "withdrawal": 0,
+        "documents": 1,
+        "referral": 0,
+        "question": 1,
+        "other": 0
+      },
+      "other": {
+        "scheduling": 1,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 1,
+        "question": 1,
+        "other": 0
+      }
+    },
+    "mistakes": [
+      {
+        "id": "h01",
+        "expected": "scheduling",
+        "predicted": "status_check",
+        "confidence": 0.33,
+        "body": "hey sorry for late reply, my laptop died. is there any chance we can do the tech interview next wk instead? any day after tues is ok"
+      },
+      {
+        "id": "h02",
+        "expected": "status_check",
+        "predicted": "other",
+        "confidence": 0.3,
+        "body": "Bonjour, je voulais savoir si ma candidature pour le poste de développeuse backend est toujours en cours d'examen. Merci d'avance."
+      },
+      {
+        "id": "h03",
+        "expected": "status_check",
+        "predicted": "question",
+        "confidence": 0.25,
+        "body": "Assalam o alaikum, mera interview kal tha. Koi update hai? Mujhe doosri company se bhi call aayi hai."
+      },
+      {
+        "id": "h04",
+        "expected": "withdrawal",
+        "predicted": "other",
+        "confidence": 0.3,
+        "body": "Hallo, ich habe mich entschieden, meine Bewerbung zurückzuziehen. Vielen Dank für Ihre Zeit."
+      },
+      {
+        "id": "h06",
+        "expected": "question",
+        "predicted": "documents",
+        "confidence": 0.57,
+        "body": "Hi! I really enjoyed the conversation with the team. A couple of questions: is the role open to people outside the EU, and would you consider a 4-day week? Also I attached my updated portfolio."
+      },
+      {
+        "id": "h08",
+        "expected": "status_check",
+        "predicted": "other",
+        "confidence": 0.3,
+        "body": "Great process you have. Four weeks and not a word. Really makes me want to work there."
+      },
+      {
+        "id": "h09",
+        "expected": "referral",
+        "predicted": "other",
+        "confidence": 0.3,
+        "body": "---------- Forwarded message ---------\nFrom: Dan <dan@mail.com>\nHey Mira, saw your company is hiring QA. I'd love an intro if you think I'd fit.\n\nMira here: Dan was on my team for 3 years, strongly recommend him."
+      },
+      {
+        "id": "h10",
+        "expected": "offer_compensation",
+        "predicted": "question",
+        "confidence": 0.25,
+        "body": "What's the budget for this role? Just want to make sure we're aligned before I spend time on the take-home."
+      },
+      {
+        "id": "h15",
+        "expected": "other",
+        "predicted": "question",
+        "confidence": 0.93,
+        "body": "Hi, I didn't get through after the final round, which is fine, but could you share any feedback on what I could improve?"
+      },
+      {
+        "id": "h16",
+        "expected": "scheduling",
+        "predicted": "question",
+        "confidence": 0.94,
+        "body": "I'm hard of hearing. Would it be possible to have live captions or a written format for the interview?"
+      },
+      {
+        "id": "h17",
+        "expected": "other",
+        "predicted": "scheduling",
+        "confidence": 0.92,
+        "body": "URGENT please call me back"
+      },
+      {
+        "id": "h18",
+        "expected": "other",
+        "predicted": "referral",
+        "confidence": 0.95,
+        "body": "Please find attached 5 pre-screened profiles for your backend role. Our fee is 18% of first-year salary."
+      },
+      {
+        "id": "h21",
+        "expected": "scheduling",
+        "predicted": "question",
+        "confidence": 0.25,
+        "body": "I know we already moved it once but my kid is sick. I'm so sorry. Is there anything later this week? If not I understand if you need to move on."
+      },
+      {
+        "id": "h22",
+        "expected": "documents",
+        "predicted": "question",
+        "confidence": 0.25,
+        "body": "The background check company is asking for my old employer's address, which closed in 2019. What should I put?"
+      },
+      {
+        "id": "h23",
+        "expected": "question",
+        "predicted": "status_check",
+        "confidence": 0.33,
+        "body": "Hi, I saw the role on LinkedIn. Is it still open? I'd like to apply but the link seems broken."
+      },
+      {
+        "id": "h25",
+        "expected": "referral",
+        "predicted": "question",
+        "confidence": 0.25,
+        "body": "Both my old colleagues from the data team would be great for the analyst role. Should they apply separately or can I send both CVs to you?"
+      },
+      {
+        "id": "h26",
+        "expected": "offer_compensation",
+        "predicted": "question",
+        "confidence": 0.25,
+        "body": "The contract says start on the 3rd but I'll still be serving notice. Can we push it two weeks?"
+      },
+      {
+        "id": "h27",
+        "expected": "withdrawal",
+        "predicted": "other",
+        "confidence": 0.3,
+        "body": "Thanks for the call. Honestly the role sounds more junior than I expected, so I'll pass on the next round."
+      },
+      {
+        "id": "h28",
+        "expected": "question",
+        "predicted": "offer_compensation",
+        "confidence": 0.33,
+        "body": "How long does the whole process usually take from first call to offer? Just planning around another process."
+      },
+      {
+        "id": "h29",
+        "expected": "scheduling",
+        "predicted": "other",
+        "confidence": 0.3,
+        "body": "Jordan Lee has declined this invitation."
+      }
+    ],
+    "confidentMistakes": 5,
+    "injection": {
+      "expected": 0,
+      "flagged": 0
+    }
+  }
+}

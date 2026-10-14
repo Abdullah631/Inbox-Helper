@@ -56,6 +56,14 @@ describe("export", () => {
     expect(replySubject("")).toBe("Re: your message");
   });
 
+  it.each(['=HYPERLINK("https://evil.example","Click")', "+1-555-0100", "@SUM(A1:A9)", "-2+3", "\t=1+1"])(
+    "defuses a cell that would run as a spreadsheet formula: %s",
+    (to) => {
+      const row = parseCsv(toCsv([{ id: "m1", to, subject: "s", body: "b" }]))[0];
+      expect(row.to).toBe(`'${to}`.trim());
+    },
+  );
+
   it("writes CSV that our own parser reads back the same", () => {
     const rows = [{ id: "m1", to: "a@b.com", subject: 'Re: "quotes", commas', body: "Line one\nLine two" }];
     expect(parseCsv(toCsv(rows))).toEqual(rows);

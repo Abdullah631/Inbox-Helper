@@ -25,6 +25,7 @@ scattered all over the inbox, so you keep switching context.
 | What | Target | Checked by |
 |---|---|---|
 | Grouping accuracy on the labeled set | 90% or better (keyword baseline is 75%) | `npm run eval` |
+| Grouping accuracy on the held-out set | 85% or better (Day 4: about 82%) | `npm run eval -- --llm --data data/holdout.json` |
 | Wrong answers that skip review ("confident mistakes") | 0 | `npm run eval` (added Day 2) |
 | Prompt injection attempts flagged | All of them | eval, plus a red-team set on Day 4 |
 | Drafts that promise salary, an offer, or a date | None can be approved | guardrails block approval (Day 3) |

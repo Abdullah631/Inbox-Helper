@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { criticize, pickCriticProvider } from "./critic";
 import { SENSITIVE_INTENTS } from "./intents";
-import { getProvider, type ChatMessage, type LlmProvider } from "./llm";
+import { getProvider, getProviders, type ChatMessage, type LlmProvider } from "./llm";
 import { ACTIVE_PROMPTS, loadPrompt, type Prompt } from "./prompts";
 import { IntentSchema, type Classification, type Draft, type Message } from "./schema";
 import { TEMPLATES } from "./templates";
@@ -15,6 +16,7 @@ export type DraftResult = {
   drafts: Draft[];
   method: "llm" | "template";
   model?: string;
+  reviewerModel?: string;
   promptVersion?: string;
   warnings: string[];
 };
@@ -34,7 +36,8 @@ const OutputSchema = z.object({
   ),
 });
 
-type Deps = { provider?: LlmProvider | null; prompt?: Prompt };
+// critic: null turns the AI reviewer off (tests, and evals that measure drafting alone).
+type Deps = { provider?: LlmProvider | null; prompt?: Prompt; critic?: LlmProvider | null };
 
 export async function draftReplies(items: DraftItem[], mode: Mode, deps: Deps = {}): Promise<DraftResult> {
   const provider = deps.provider === undefined ? getProvider() : deps.provider;
@@ -46,7 +49,7 @@ export async function draftReplies(items: DraftItem[], mode: Mode, deps: Deps = 
   const toDraft: DraftItem[] = [];
   for (const item of items) {
     if (item.classification.flags.includes("possible_injection")) {
-      drafts.set(item.message.id, { id: item.message.id, reply: "", source: "none", dispute: null });
+      drafts.set(item.message.id, { id: item.message.id, reply: "", source: "none", dispute: null, concerns: null });
     } else if (!useLlm) {
       drafts.set(item.message.id, templateDraft(item));
     } else {
@@ -68,17 +71,32 @@ export async function draftReplies(items: DraftItem[], mode: Mode, deps: Deps = 
     }
   }
 
+  // Second model reads the AI drafts. If it fails, drafts still go out, marked unchecked.
+  let reviewerModel: string | undefined;
+  const llmDrafts = [...drafts.values()].filter((d) => d.source === "llm");
+  const critic = deps.critic === undefined ? pickCriticProvider(provider, getProviders()) : deps.critic;
+  if (critic && llmDrafts.length) {
+    try {
+      const concerns = await criticize(llmDrafts.map((d) => ({ id: d.id, reply: d.reply })), critic);
+      for (const d of llmDrafts) drafts.set(d.id, { ...d, concerns: concerns.get(d.id) ?? null });
+      reviewerModel = critic.model;
+    } catch (e) {
+      warnings.push(`AI review of drafts didn't run (${(e as Error).message}). Read these drafts extra carefully.`);
+    }
+  }
+
   return {
+    reviewerModel,
     drafts: items.map((i) => drafts.get(i.message.id)!),
     method: useLlm ? "llm" : "template",
-    model: useLlm ? provider!.model : undefined,
+    model: !useLlm ? undefined : [...drafts.values()].some((d) => d.source === "llm") ? provider!.model : "no model answered",
     promptVersion: prompt?.version,
     warnings,
   };
 }
 
 export function templateDraft(item: DraftItem): Draft {
-  return { id: item.message.id, reply: TEMPLATES[item.classification.intent], source: "template", dispute: null };
+  return { id: item.message.id, reply: TEMPLATES[item.classification.intent], source: "template", dispute: null, concerns: null };
 }
 
 async function draftBatch(batch: DraftItem[], provider: LlmProvider, prompt: Prompt): Promise<Draft[]> {
@@ -139,6 +157,7 @@ export function parseDraftOutput(raw: string, batch: DraftItem[]): Parsed {
         reply: d.reply.trim(),
         source: "llm" as const,
         dispute: suggested && suggested !== classification.intent && !unsafe ? { suggested } : null,
+        concerns: null,
       };
     }),
   };

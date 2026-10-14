@@ -24,12 +24,14 @@ if (existsSync(join(root, ".env.local"))) process.loadEnvFile(join(root, ".env.l
 
 const args = process.argv.slice(2);
 const arg = (name: string) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined);
+const dataFile = arg("--data") ?? "data/sample-inbox.json";
 
 async function main() {
-  const provider = getProvider();
+  // One provider per run so the score belongs to one model. --provider gemini to switch.
+    const provider = getProvider(process.env, { failover: false, only: arg("--provider") as "groq" | "gemini" | undefined });
   if (!provider) throw new Error("Needs GROQ_API_KEY or GEMINI_API_KEY in .env.local");
 
-  const dataset = z.array(LabeledMessageSchema).parse(JSON.parse(readFileSync(join(root, "data/sample-inbox.json"), "utf8")));
+  const dataset = z.array(LabeledMessageSchema).parse(JSON.parse(readFileSync(join(root, dataFile), "utf8")));
   const messages = dataset.map(({ id, from, subject, body }) => ({ id, from, subject, body }));
   const expected = new Map(dataset.map((d) => [d.id, d.expected_intent]));
 
@@ -49,7 +51,8 @@ async function main() {
   const prompt = loadPrompt("draft", arg("--prompt") ?? ACTIVE_PROMPTS.draft);
   const started = Date.now();
   const items = messages.map((message, i) => ({ message, classification: classifications[i] }));
-  const result = await draftReplies(items, "llm", { provider, prompt });
+  // critic: null keeps this eval about drafting alone (the reviewer has its own eval).
+  const result = await draftReplies(items, "llm", { provider, prompt, critic: null });
   const seconds = ((Date.now() - started) / 1000).toFixed(1);
 
   // Guardrails on model-written drafts only. Templates are tested separately.
@@ -118,6 +121,10 @@ async function main() {
     JSON.stringify({ runAt, classifiedBy, seconds: Number(seconds), ...result, issueCounts, blocked }, null, 2));
   writeFileSync(join(outDir, "drafts-latest.md"), md);
 
+  if (fellBack > 0) {
+    console.log(`\nINVALID RUN: ${fellBack} drafts fell back to templates. Not added to history.`);
+    process.exit(1);
+  }
   const history = join(root, "evals/drafts-history.csv");
   if (!existsSync(history)) writeFileSync(history, "run_at,model,draft_prompt,classified_by,llm_drafts,blocked,confident_mistakes,caught,caught_right_group,false_disputes,fallbacks,seconds\n");
   appendFileSync(history, [runAt, result.model, result.promptVersion, `"${classifiedBy}"`, llmDrafts.length, blocked.length,

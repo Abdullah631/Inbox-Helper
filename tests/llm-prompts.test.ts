@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { INTENTS } from "@/lib/intents";
-import { getProvider, LlmError, retryDelayMs } from "@/lib/llm";
+import { getProvider, LlmError, retryDelayMs, withFailover, type LlmProvider } from "@/lib/llm";
 import { ACTIVE_PROMPTS, listVersions, loadPrompt } from "@/lib/prompts";
 
 describe("getProvider", () => {
@@ -15,6 +15,40 @@ describe("getProvider", () => {
 
   it("uses the model from env when set", () => {
     expect(getProvider({ GROQ_API_KEY: "k", GROQ_MODEL: "some-model" })?.model).toBe("some-model");
+  });
+});
+
+describe("failover", () => {
+  const fake = (name: "groq" | "gemini", model: string, result: string | Error): LlmProvider => ({
+    name, model, completeJson: async () => { if (result instanceof Error) throw result; return result; },
+  });
+
+  it("uses the next provider when one fails with a provider error, and reports what answered", async () => {
+    const p = withFailover([fake("groq", "g-model", new LlmError("HTTP 429 (daily limit reached)", 429)), fake("gemini", "gem-model", "{}")]);
+    await expect(p.completeJson([])).resolves.toBe("{}");
+    expect(p.model).toBe("gem-model");
+  });
+
+  it("names both models when a run switched partway", async () => {
+    let calls = 0;
+    const flaky: LlmProvider = { name: "groq", model: "g-model", completeJson: async () => { if (calls++ > 0) throw new LlmError("x", 429); return "{}"; } };
+    const p = withFailover([flaky, fake("gemini", "gem-model", "{}")]);
+    await p.completeJson([]);
+    await p.completeJson([]);
+    expect(p.model).toBe("g-model + gem-model");
+  });
+
+  it("throws the last error when every provider fails, and doesn't swallow code bugs", async () => {
+    const p = withFailover([fake("groq", "a", new LlmError("first", 429)), fake("gemini", "b", new LlmError("second", 503))]);
+    await expect(p.completeJson([])).rejects.toThrow("second");
+    const bug = withFailover([fake("groq", "a", new TypeError("oops")), fake("gemini", "b", "{}")]);
+    await expect(bug.completeJson([])).rejects.toThrow("oops");
+  });
+
+  it("is only used when asked: evals get a single provider", () => {
+    const env = { GROQ_API_KEY: "k", GEMINI_API_KEY: "g" };
+    expect(getProvider(env, { failover: false })?.model).toBe("openai/gpt-oss-120b");
+    expect(getProvider(env, { only: "gemini" })?.name).toBe("gemini");
   });
 });
 
@@ -68,7 +102,20 @@ describe("Groq provider over HTTP", () => {
     expect(retryDelayMs(null, "Please try again in 1.5s. Need more tokens?", 0)).toBe(2000);
     expect(retryDelayMs(null, "", 0)).toBe(3000);
     expect(retryDelayMs(null, "", 1)).toBe(6000);
-    expect(retryDelayMs("120", "", 0)).toBe(20000);
+    expect(retryDelayMs(null, "Please try again in 12.25s.", 0)).toBe(12750);
+  });
+
+  it("gives up instead of waiting when the server asks for longer than a request can last", () => {
+    expect(retryDelayMs("120", "", 0)).toBeNull();
+    expect(retryDelayMs(null, "on tokens per day (TPD): Limit 200000. Please try again in 1m22.512s.", 0)).toBeNull();
+    expect(retryDelayMs(null, "Please try again in 19m0.912s.", 0)).toBeNull();
+  });
+
+  it("does not put the provider's error body (account ids) into the error message", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response('{"error":{"message":"Rate limit in organization `org_secret123` on tokens per day (TPD). Please try again in 19m0.9s."}}', { status: 429 })));
+    const err = await getProvider({ GROQ_API_KEY: "k" })!.completeJson([]).catch((e) => e);
+    expect(err.message).not.toContain("org_secret123");
+    expect(err.message).toMatch(/daily limit/);
   });
 
   it("throws an LlmError with the status on other HTTP errors", async () => {

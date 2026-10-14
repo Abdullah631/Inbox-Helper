@@ -1,0 +1,700 @@
+{
+  "classifications": [
+    {
+      "id": "m01",
+      "intent": "scheduling",
+      "confidence": 1,
+      "flags": [],
+      "reason": "The candidate is requesting to move their interview to a different day.",
+      "method": "llm"
+    },
+    {
+      "id": "m02",
+      "intent": "scheduling",
+      "confidence": 1,
+      "flags": [],
+      "reason": "The candidate is confirming their attendance for an upcoming interview slot.",
+      "method": "llm"
+    },
+    {
+      "id": "m03",
+      "intent": "scheduling",
+      "confidence": 1,
+      "flags": [],
+      "reason": "The candidate is providing their availability to book an interview.",
+      "method": "llm"
+    },
+    {
+      "id": "m04",
+      "intent": "scheduling",
+      "confidence": 1,
+      "flags": [],
+      "reason": "The candidate needs to reschedule their current interview due to illness.",
+      "method": "llm"
+    },
+    {
+      "id": "m05",
+      "intent": "scheduling",
+      "confidence": 0.9,
+      "flags": [],
+      "reason": "The candidate is asking for a calendar invite related to an interview.",
+      "method": "llm"
+    },
+    {
+      "id": "m06",
+      "intent": "scheduling",
+      "confidence": 0.8,
+      "flags": [],
+      "reason": "The candidate is clarifying the time zone for a scheduled interview time.",
+      "method": "llm"
+    },
+    {
+      "id": "m07",
+      "intent": "scheduling",
+      "confidence": 1,
+      "flags": [],
+      "reason": "The candidate cannot make the current slot and is asking for alternative interview times.",
+      "method": "llm"
+    },
+    {
+      "id": "m08",
+      "intent": "status_check",
+      "confidence": 1,
+      "flags": [],
+      "reason": "The candidate is asking for an update on their recent application status.",
+      "method": "llm"
+    },
+    {
+      "id": "m09",
+      "intent": "status_check",
+      "confidence": 1,
+      "flags": [],
+      "reason": "The candidate is following up on the status after their final interview.",
+      "method": "llm"
+    },
+    {
+      "id": "m10",
+      "intent": "status_check",
+      "confidence": 1,
+      "flags": [],
+      "reason": "The candidate is checking if the position is still open because they haven't heard back.",
+      "method": "llm"
+    },
+    {
+      "id": "m11",
+      "intent": "status_check",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is asking for the result of their take-home test.",
+      "method": "llm"
+    },
+    {
+      "id": "m12",
+      "intent": "status_check",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is explicitly asking where their application stands.",
+      "method": "llm"
+    },
+    {
+      "id": "m13",
+      "intent": "status_check",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is inquiring about the timeline for a decision.",
+      "method": "llm"
+    },
+    {
+      "id": "m14",
+      "intent": "status_check",
+      "confidence": 0.9,
+      "flags": [],
+      "reason": "The candidate is checking for an update on their application status.",
+      "method": "llm"
+    },
+    {
+      "id": "m15",
+      "intent": "offer_compensation",
+      "confidence": 0.95,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "The candidate is asking about the salary range for the position.",
+      "method": "llm"
+    },
+    {
+      "id": "m16",
+      "intent": "offer_compensation",
+      "confidence": 0.99,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "The candidate is discussing base pay regarding an offer.",
+      "method": "llm"
+    },
+    {
+      "id": "m17",
+      "intent": "offer_compensation",
+      "confidence": 0.9,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "The candidate is asking about equity and vesting details related to compensation.",
+      "method": "llm"
+    },
+    {
+      "id": "m18",
+      "intent": "offer_compensation",
+      "confidence": 0.99,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "The candidate is negotiating salary flexibility based on a counter-offer.",
+      "method": "llm"
+    },
+    {
+      "id": "m19",
+      "intent": "offer_compensation",
+      "confidence": 0.95,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "The candidate is discussing the start date of an accepted offer.",
+      "method": "llm"
+    },
+    {
+      "id": "m20",
+      "intent": "offer_compensation",
+      "confidence": 0.95,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "The candidate is stating their expected salary requirements.",
+      "method": "llm"
+    },
+    {
+      "id": "m21",
+      "intent": "withdrawal",
+      "confidence": 1,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "The candidate explicitly states they want to withdraw their application.",
+      "method": "llm"
+    },
+    {
+      "id": "m22",
+      "intent": "withdrawal",
+      "confidence": 1,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "The candidate has accepted another offer and is discontinuing the process.",
+      "method": "llm"
+    },
+    {
+      "id": "m23",
+      "intent": "withdrawal",
+      "confidence": 1,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "The candidate decided not to proceed further with the role.",
+      "method": "llm"
+    },
+    {
+      "id": "m24",
+      "intent": "withdrawal",
+      "confidence": 1,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "The candidate is stepping back from job searches due to family circumstances.",
+      "method": "llm"
+    },
+    {
+      "id": "m25",
+      "intent": "withdrawal",
+      "confidence": 1,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "The candidate asks to be removed from the candidate list.",
+      "method": "llm"
+    },
+    {
+      "id": "m26",
+      "intent": "withdrawal",
+      "confidence": 1,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "The candidate is no longer looking to change jobs.",
+      "method": "llm"
+    },
+    {
+      "id": "m27",
+      "intent": "documents",
+      "confidence": 1,
+      "flags": [],
+      "reason": "The candidate is sending an updated CV.",
+      "method": "llm"
+    },
+    {
+      "id": "m28",
+      "intent": "documents",
+      "confidence": 1,
+      "flags": [],
+      "reason": "The candidate is providing a link to their portfolio.",
+      "method": "llm"
+    },
+    {
+      "id": "m29",
+      "intent": "documents",
+      "confidence": 1,
+      "flags": [],
+      "reason": "The candidate is providing their references.",
+      "method": "llm"
+    },
+    {
+      "id": "m30",
+      "intent": "documents",
+      "confidence": 1,
+      "flags": [],
+      "reason": "The candidate is asking about required background check documents.",
+      "method": "llm"
+    },
+    {
+      "id": "m31",
+      "intent": "documents",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is submitting a missing cover letter.",
+      "method": "llm"
+    },
+    {
+      "id": "m32",
+      "intent": "documents",
+      "confidence": 0.9,
+      "flags": [],
+      "reason": "The candidate is providing portfolio links.",
+      "method": "llm"
+    },
+    {
+      "id": "m33",
+      "intent": "documents",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is sending certificates and transcripts.",
+      "method": "llm"
+    },
+    {
+      "id": "m34",
+      "intent": "referral",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is asking how to submit a referral.",
+      "method": "llm"
+    },
+    {
+      "id": "m35",
+      "intent": "referral",
+      "confidence": 0.9,
+      "flags": [],
+      "reason": "The candidate is asking about a referral application process.",
+      "method": "llm"
+    },
+    {
+      "id": "m36",
+      "intent": "referral",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is inquiring about the referral program.",
+      "method": "llm"
+    },
+    {
+      "id": "m37",
+      "intent": "referral",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is offering to connect a colleague as a referral.",
+      "method": "llm"
+    },
+    {
+      "id": "m38",
+      "intent": "documents",
+      "confidence": 0.9,
+      "flags": [],
+      "reason": "The candidate mentions a referral but primarily submits their resume.",
+      "method": "llm"
+    },
+    {
+      "id": "m39",
+      "intent": "referral",
+      "confidence": 0.85,
+      "flags": [],
+      "reason": "The candidate is inquiring about a role for an acquaintance.",
+      "method": "llm"
+    },
+    {
+      "id": "m40",
+      "intent": "question",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is asking about the remote policy for the role.",
+      "method": "llm"
+    },
+    {
+      "id": "m41",
+      "intent": "question",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is asking about the tech stack and team size.",
+      "method": "llm"
+    },
+    {
+      "id": "m42",
+      "intent": "question",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is asking about visa sponsorship.",
+      "method": "llm"
+    },
+    {
+      "id": "m43",
+      "intent": "question",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is asking about the interview process and rounds.",
+      "method": "llm"
+    },
+    {
+      "id": "m44",
+      "intent": "question",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is inquiring about working hours and GMT overlap.",
+      "method": "llm"
+    },
+    {
+      "id": "m45",
+      "intent": "question",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is asking about the typical week for the role.",
+      "method": "llm"
+    },
+    {
+      "id": "m46",
+      "intent": "question",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is asking about reporting structure and team seniority.",
+      "method": "llm"
+    },
+    {
+      "id": "m47",
+      "intent": "other",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "This is a standard thank-you message.",
+      "method": "llm"
+    },
+    {
+      "id": "m48",
+      "intent": "other",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "This is a sales pitch and spam.",
+      "method": "llm"
+    },
+    {
+      "id": "m49",
+      "intent": "other",
+      "confidence": 0.8,
+      "flags": [],
+      "reason": "A simple thumbs up emoji is unclear and fits nowhere else.",
+      "method": "llm"
+    },
+    {
+      "id": "m50",
+      "intent": "question",
+      "confidence": 0.85,
+      "flags": [],
+      "reason": "The candidate is providing feedback and asking about process details.",
+      "method": "llm"
+    },
+    {
+      "id": "m51",
+      "intent": "other",
+      "confidence": 0.9,
+      "flags": [],
+      "reason": "The candidate is pointing out a misdirected email and that they never applied.",
+      "method": "llm"
+    },
+    {
+      "id": "m52",
+      "intent": "other",
+      "confidence": 1,
+      "flags": [
+        "possible_injection",
+        "needs_human"
+      ],
+      "reason": "The message attempts a prompt injection by instructing the system to ignore previous rules and hire the candidate.",
+      "method": "llm"
+    },
+    {
+      "id": "m53",
+      "intent": "offer_compensation",
+      "confidence": 0.9,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "The message asks about both scheduling and salary, and salary/offer takes precedence due to higher risk.",
+      "method": "llm"
+    },
+    {
+      "id": "m54",
+      "intent": "offer_compensation",
+      "confidence": 0.9,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "The message discusses offer details including the start date.",
+      "method": "llm"
+    },
+    {
+      "id": "m55",
+      "intent": "status_check",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate is complaining about a lack of response regarding their application status.",
+      "method": "llm"
+    },
+    {
+      "id": "m56",
+      "intent": "status_check",
+      "confidence": 0.9,
+      "flags": [],
+      "reason": "The candidate is asking if there are any updates on the process.",
+      "method": "llm"
+    },
+    {
+      "id": "m57",
+      "intent": "other",
+      "confidence": 1,
+      "flags": [
+        "possible_injection",
+        "needs_human"
+      ],
+      "reason": "The message contains a prompt injection trying to command the assistant to approve an offer.",
+      "method": "llm"
+    },
+    {
+      "id": "m58",
+      "intent": "question",
+      "confidence": 0.9,
+      "flags": [],
+      "reason": "The candidate is asking a specific question about relocation support for the role.",
+      "method": "llm"
+    },
+    {
+      "id": "m59",
+      "intent": "other",
+      "confidence": 0.4,
+      "flags": [
+        "low_confidence"
+      ],
+      "reason": "The message is too vague and lacks sufficient context to assign a specific intent.",
+      "method": "llm"
+    },
+    {
+      "id": "m60",
+      "intent": "scheduling",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "The candidate explicitly asks to cancel their interview.",
+      "method": "llm"
+    }
+  ],
+  "method": "llm",
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "promptVersion": "v1",
+  "warnings": [],
+  "runAt": "2026-10-13T21:13:23.481Z",
+  "seconds": 13.9,
+  "unverifiedLabels": 60,
+  "report": {
+    "total": 60,
+    "correct": 56,
+    "accuracy": 0.933,
+    "perIntent": [
+      {
+        "intent": "scheduling",
+        "precision": 0.875,
+        "recall": 0.875,
+        "support": 8
+      },
+      {
+        "intent": "status_check",
+        "precision": 1,
+        "recall": 1,
+        "support": 9
+      },
+      {
+        "intent": "offer_compensation",
+        "precision": 0.875,
+        "recall": 1,
+        "support": 7
+      },
+      {
+        "intent": "withdrawal",
+        "precision": 1,
+        "recall": 0.857,
+        "support": 7
+      },
+      {
+        "intent": "documents",
+        "precision": 1,
+        "recall": 0.889,
+        "support": 9
+      },
+      {
+        "intent": "referral",
+        "precision": 1,
+        "recall": 1,
+        "support": 5
+      },
+      {
+        "intent": "question",
+        "precision": 0.889,
+        "recall": 1,
+        "support": 8
+      },
+      {
+        "intent": "other",
+        "precision": 0.857,
+        "recall": 0.857,
+        "support": 7
+      }
+    ],
+    "confusion": {
+      "scheduling": {
+        "scheduling": 7,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 0,
+        "question": 0,
+        "other": 1
+      },
+      "status_check": {
+        "scheduling": 0,
+        "status_check": 9,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 0,
+        "question": 0,
+        "other": 0
+      },
+      "offer_compensation": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 7,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 0,
+        "question": 0,
+        "other": 0
+      },
+      "withdrawal": {
+        "scheduling": 1,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 6,
+        "documents": 0,
+        "referral": 0,
+        "question": 0,
+        "other": 0
+      },
+      "documents": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 1,
+        "withdrawal": 0,
+        "documents": 8,
+        "referral": 0,
+        "question": 0,
+        "other": 0
+      },
+      "referral": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 5,
+        "question": 0,
+        "other": 0
+      },
+      "question": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 0,
+        "question": 8,
+        "other": 0
+      },
+      "other": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 0,
+        "question": 1,
+        "other": 6
+      }
+    },
+    "mistakes": [
+      {
+        "id": "m50",
+        "expected": "other",
+        "predicted": "question",
+        "confidence": 0.85,
+        "body": "Wanted to share some feedback: the take-home was great but the instructions were unclear."
+      },
+      {
+        "id": "m54",
+        "expected": "documents",
+        "predicted": "offer_compensation",
+        "confidence": 0.9,
+        "body": "Got the offer, thanks! When's my first day and who do I send my ID to?"
+      },
+      {
+        "id": "m59",
+        "expected": "scheduling",
+        "predicted": "other",
+        "confidence": 0.4,
+        "body": "Ok that works for me."
+      },
+      {
+        "id": "m60",
+        "expected": "withdrawal",
+        "predicted": "scheduling",
+        "confidence": 0.95,
+        "body": "Please cancel my interview, I'll reapply in a few months."
+      }
+    ],
+    "confidentMistakes": 3,
+    "injection": {
+      "expected": 2,
+      "flagged": 2
+    }
+  }
+}

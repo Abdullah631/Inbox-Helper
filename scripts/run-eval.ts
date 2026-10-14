@@ -20,11 +20,14 @@ if (existsSync(join(root, ".env.local"))) process.loadEnvFile(join(root, ".env.l
 const args = process.argv.slice(2);
 const useLlm = args.includes("--llm");
 const promptArg = args.includes("--prompt") ? args[args.indexOf("--prompt") + 1] : undefined;
+// --data data/holdout.json scores a different labeled set (Day 4: the held-out set).
+const dataFile = args.includes("--data") ? args[args.indexOf("--data") + 1] : "data/sample-inbox.json";
+const dataTag = dataFile.split("/").pop()!.replace(/\.json$/, "");
 
 async function main() {
   const dataset = z
     .array(LabeledMessageSchema)
-    .parse(JSON.parse(readFileSync(join(root, "data/sample-inbox.json"), "utf8")));
+    .parse(JSON.parse(readFileSync(join(root, dataFile), "utf8")));
   const messages = dataset.map(({ id, from, subject, body }) => ({ id, from, subject, body }));
 
   // Messages noted as prompt injection. These must get flagged.
@@ -32,7 +35,9 @@ async function main() {
 
   let deps = {};
   if (useLlm) {
-    const provider = getProvider();
+    // One provider per run so the score belongs to one model. --provider gemini to switch.
+    const only = args.includes("--provider") ? (args[args.indexOf("--provider") + 1] as "groq" | "gemini") : undefined;
+    const provider = getProvider(process.env, { failover: false, only });
     if (!provider) throw new Error("--llm needs GROQ_API_KEY or GEMINI_API_KEY in .env.local");
     deps = { provider, prompt: loadPrompt("classify", promptArg ?? ACTIVE_PROMPTS.classify) };
   }
@@ -47,7 +52,7 @@ async function main() {
   const fellBack = result.method === "llm" ? result.classifications.filter((c) => c.method === "fallback").length : 0;
   const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
 
-  console.log(`\nClassifier: ${label}  (${seconds}s)`);
+  console.log(`\nClassifier: ${label}  (${seconds}s)  on ${dataFile}`);
   console.log(`Accuracy:   ${report.correct}/${report.total} = ${pct(report.accuracy)}`);
   console.log(`Confident mistakes: ${report.confidentMistakes} (wrong, and not flagged for review)`);
   console.log(`Injection:  flagged ${report.injection.flagged}/${report.injection.expected}`);
@@ -66,18 +71,24 @@ async function main() {
     if (result.method === "llm") console.log(`        model said: ${reasons.get(x.id)}`);
   }
 
+  // A run where the LLM failed and keywords stood in is not an LLM score (Day 4: the
+  // daily token limit turned two runs into keyword runs and they got logged as LLM).
+  const invalid = result.method === "llm" && fellBack > 0;
+  if (invalid) console.log(`\nINVALID RUN: ${fellBack} messages fell back to keywords. Not added to history.`);
+
   const runAt = new Date().toISOString();
   const outDir = join(root, "evals/results");
   mkdirSync(outDir, { recursive: true });
-  const tag = result.method === "llm" ? `llm-${result.promptVersion}` : "keyword";
-  const outFile = join(outDir, `${tag}-${runAt.replace(/[:.]/g, "-")}.json`);
+  const tag = `${dataTag === "sample-inbox" ? "" : dataTag + "-"}${result.method === "llm" ? `llm-${result.promptVersion}` : "keyword"}`;
+  const outFile = join(outDir, `${tag}-${runAt.replace(/[:.]/g, "-")}${invalid ? "-INVALID" : ""}.json`);
   writeFileSync(outFile, JSON.stringify({ ...result, runAt, seconds: Number(seconds), unverifiedLabels: unverified, report }, null, 2));
 
+  if (invalid) process.exit(1);
   const history = join(root, "evals/history.csv");
-  if (!existsSync(history)) writeFileSync(history, "run_at,method,model,prompt,accuracy,correct,total,confident_mistakes,injection_flagged,injection_total,fallbacks,unverified_labels,seconds\n");
+  if (!existsSync(history)) writeFileSync(history, "run_at,data,method,model,prompt,accuracy,correct,total,confident_mistakes,injection_flagged,injection_total,fallbacks,unverified_labels,seconds\n");
   appendFileSync(
     history,
-    [runAt, result.method, result.model ?? "", result.promptVersion ?? "", report.accuracy, report.correct, report.total,
+    [runAt, dataTag, result.method, result.model ?? "", result.promptVersion ?? "", report.accuracy, report.correct, report.total,
       report.confidentMistakes, report.injection.flagged, report.injection.expected, fellBack, unverified, seconds].join(",") + "\n",
   );
 

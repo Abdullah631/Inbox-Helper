@@ -4,7 +4,9 @@
 // Anything inside [SQUARE_BRACKETS] is a placeholder the recruiter fills in, so
 // it's ignored. "Let's meet [INTERVIEW_SLOT]" is fine. "Let's meet Monday at 3pm" is not.
 
-export type IssueKind = "money" | "offer" | "date" | "decision" | "claims_action" | "company_fact" | "ai_leak" | "too_long" | "empty";
+export type IssueKind =
+  | "money" | "offer" | "date" | "decision" | "claims_action" | "company_fact"
+  | "contact" | "hidden_chars" | "ai_leak" | "too_long" | "empty";
 
 export type Issue = { kind: IssueKind; message: string; match?: string };
 
@@ -17,6 +19,11 @@ const RULES: { kind: IssueKind; message: string; patterns: RegExp[] }[] = [
     patterns: [
       /[$€£₹]\s?\d/,
       /\b\d[\d,.]*\s?(k|usd|eur|gbp|pkr|inr|dollars|euros)\b/i,
+      // Added Day 4 after the red-team: rupees, lakh, and amounts in words.
+      /\b(rs\.?|pkr|inr)\s?\d/i,
+      /\b(lakh|lakhs|crore|crores)\b/i,
+      /\b(thousand|million)\s+(dollars|euros|pounds|rupees|a year|per year|a month|per month|annually)\b/i,
+      /\b\d[\d,.]*\s+(dollars|euros|pounds|rupees)\b/i,
       /\b(salary|pay|compensation|package)\s+(of|is|will be|would be)\s+\S*\d/i,
     ],
   },
@@ -30,6 +37,10 @@ const RULES: { kind: IssueKind; message: string; patterns: RegExp[] }[] = [
       /\bwe('d| would)\s+like\s+to\s+offer\b/i,
       /\b(the|this)\s+(job|role|position)\s+is\s+yours\b/i,
       /\bwelcome (to the team|aboard)\b/i,
+      /\byou('ve| have)?\s+got\s+(the|this)\s+(job|role|position|offer)\b/i,
+      /\b(offering|offer)\s+you\s+(the|this|a)\s+(job|role|position)\b/i,
+      /\b(official|formal|final)\s+offer\b/i,
+      /\byou('ve| have)?\s+made it\b/i,
     ],
   },
   {
@@ -43,6 +54,9 @@ const RULES: { kind: IssueKind; message: string; patterns: RegExp[] }[] = [
       /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2}(st|nd|rd|th)?\b/i,
       /\bwithin\s+\d+\s+(hours|days|business days|weeks)\b/i,
       /\b(tomorrow|tonight)\b/i,
+      /\b(mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)\.?\s+(at\s+)?\d/i,
+      /\bat\s+\d{1,2}(:\d{2})?(?!\s*(%|percent|years?|days?|weeks?|months?|people|candidates))\b/i,
+      /\bthe\s+\d{1,2}(st|nd|rd|th)\b/i,
     ],
   },
   {
@@ -54,13 +68,15 @@ const RULES: { kind: IssueKind; message: string; patterns: RegExp[] }[] = [
       /\bnot (be )?moving forward\b/i,
       /\b(unfortunately|regret to inform)\b/i,
       /\byou (did not|didn't) (pass|make it)\b/i,
+      /\b(cannot|can't|can not|won't|will not)\s+(be\s+)?(proceed|proceeding|progress|progressing|move forward|moving forward)\b/i,
+      /\bwe regret\b/i,
     ],
   },
   {
     kind: "claims_action",
     message: "Says something was already done. Nothing has been done yet; write \"I'll\" instead, or do it first.",
     patterns: [
-      /\b(i|we)('ve| have)\s+(already\s+)?(sent|resent|re-sent|added|forwarded|cancell?ed|scheduled|rescheduled|booked|updated|shared|confirmed|moved|removed|passed|escalated|deleted)\b/i,
+      /\b(i|we)('ve| have)\s+(already\s+|gone ahead and\s+)?(sent|resent|re-sent|added|forwarded|cancell?ed|scheduled|rescheduled|booked|updated|shared|confirmed|moved|removed|passed|escalated|deleted)\b/i,
       /\b(has|have) been (sent|resent|added|forwarded|cancell?ed|scheduled|rescheduled|booked|updated|confirmed|moved|removed)\b/i,
       /\bwill lock in\b/i,
     ],
@@ -76,16 +92,36 @@ const RULES: { kind: IssueKind; message: string; patterns: RegExp[] }[] = [
     ],
   },
   {
+    kind: "contact",
+    message: "Has a link or email address. Make sure it's ours, not one copied from a message.",
+    patterns: [/\bhttps?:\/\/\S+/i, /\bwww\.\S+/i, /\b[\w.+-]+@[\w-]+\.[\w.-]+\b/],
+  },
+  {
     kind: "ai_leak",
     message: "Talks about being an AI or about instructions. A candidate should never see that.",
-    patterns: [/\bas an ai\b/i, /\b(language model|system prompt|my instructions)\b/i, /\bi('m| am) (an? )?(ai|assistant|bot)\b/i],
+    patterns: [/\bas an ai\b/i, /\b(language model|system prompt|my instructions)\b/i, /\bi('m| am) (just |only )?(an? )?(ai|assistant|bot|chatbot|language model)\b/i],
   },
 ];
 
 // Models often write curly quotes. Without this, "You\u2019re hired" slipped past
 // the offer check (found on Day 3 from real drafts).
+// Day 4: zero-width characters ("h\u200Bired") and compatibility forms got past every
+// rule, so text is NFKC-normalized and stripped of them before matching.
+const ZERO_WIDTH = /[\u200B-\u200D\u2060\uFEFF\u00AD]/g;
+const HAS_ZERO_WIDTH = /[\u200B-\u200D\u2060\uFEFF\u00AD]/;
+
 function normalize(text: string): string {
-  return text.replace(/[\u2018\u2019\u02BC]/g, "'").replace(/[\u201C\u201D]/g, '"');
+  return text
+    .normalize("NFKC")
+    .replace(ZERO_WIDTH, "")
+    .replace(/[\u2018\u2019\u02BC]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"');
+}
+
+// Latin words with a Cyrillic or Greek letter inside ("h\u0456red") look normal but
+// dodge every pattern. Real replies don't contain them, so flag them.
+function hasHiddenChars(text: string): boolean {
+  return HAS_ZERO_WIDTH.test(text) || /[a-z][\u0370-\u03FF\u0400-\u04FF]|[\u0370-\u03FF\u0400-\u04FF][a-z]/i.test(text);
 }
 
 export function stripPlaceholders(text: string): string {
@@ -105,6 +141,9 @@ export function checkDraft(text: string): Issue[] {
 
   const plain = stripPlaceholders(text);
   const issues: Issue[] = [];
+  if (hasHiddenChars(text)) {
+    issues.push({ kind: "hidden_chars", message: "Has invisible or look-alike characters. Retype the reply in plain text." });
+  }
   for (const rule of RULES) {
     for (const p of rule.patterns) {
       const m = plain.match(p);

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { aiLimiter, clientKey } from "@/lib/rate-limit";
 import { classifyInbox, NoProviderError } from "@/lib/classify";
 import { ClassifyRequestSchema } from "@/lib/schema";
 
@@ -19,6 +20,16 @@ export async function POST(req: Request) {
       { error: "Invalid request.", issues: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`) },
       { status: 400 },
     );
+  }
+
+  if (parsed.data.mode !== "keyword") {
+    const limit = aiLimiter.check(clientKey(req.headers));
+    if (!limit.ok) {
+      return NextResponse.json(
+        { error: `Too many AI requests from your address. Wait ${limit.retryAfterSeconds}s, or switch to Keywords.` },
+        { status: 429, headers: { "retry-after": String(limit.retryAfterSeconds) } },
+      );
+    }
   }
 
   try {

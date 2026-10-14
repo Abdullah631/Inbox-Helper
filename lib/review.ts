@@ -39,6 +39,13 @@ export function replySubject(subject: string): string {
 }
 
 export function toCsv(rows: ApprovedReply[]): string {
-  const cell = (v: string) => (/[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+  // Candidates control the address and subject. A cell starting with = + - @ would run
+  // as a formula when the recruiter opens the file in a spreadsheet (Day 4 red-team),
+  // so it gets a leading apostrophe, which spreadsheets show as plain text.
+  const defuse = (v: string) => (/^[=+\-@\t\r]/.test(v) ? `'${v}` : v);
+  const cell = (raw: string) => {
+    const v = defuse(raw);
+    return /[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+  };
   return ["id,to,subject,body", ...rows.map((r) => [r.id, r.to, r.subject, r.body].map(cell).join(","))].join("\n") + "\n";
 }
