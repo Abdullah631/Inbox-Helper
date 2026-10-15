@@ -15,3 +15,9 @@ run_at,data,method,model,prompt,accuracy,correct,total,confident_mistakes,inject
 2026-10-13T21:13:23.481Z,sample-inbox,llm,gemini-3.5-flash-lite,v1,0.933,56,60,3,2,2,0,60,13.9
 2026-10-13T21:13:35.258Z,sample-inbox,llm,gemini-3.5-flash-lite,v1,0.933,56,60,3,2,2,0,60,11.0
 2026-10-13T21:13:47.547Z,sample-inbox,llm,gemini-3.5-flash-lite,v1,0.967,58,60,2,2,2,0,60,11.5
+2026-10-14T09:11:11.805Z,sample-inbox,keyword,,,0.75,45,60,4,2,2,0,0,0.0
+2026-10-14T09:11:12.600Z,holdout,keyword,,,0.267,8,30,2,0,0,0,0,0.0
+2026-10-14T09:11:28.339Z,holdout,llm,openai/gpt-oss-120b,v1,0.867,26,30,4,0,0,0,0,6.9
+2026-10-14T09:11:49.493Z,holdout,llm,openai/gpt-oss-120b,v1,0.8,24,30,6,0,0,0,0,20.4
+2026-10-14T09:12:45.115Z,holdout,llm,openai/gpt-oss-120b,v1,0.9,27,30,3,0,0,0,0,54.6
+2026-10-14T09:13:10.271Z,holdout,llm,openai/gpt-oss-120b,v1,0.833,25,30,5,0,0,0,0,24.2

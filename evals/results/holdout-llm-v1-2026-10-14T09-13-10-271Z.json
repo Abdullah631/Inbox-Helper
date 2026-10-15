@@ -1,0 +1,447 @@
+{
+  "classifications": [
+    {
+      "id": "h01",
+      "intent": "scheduling",
+      "confidence": 0.99,
+      "flags": [],
+      "reason": "Candidate asks to reschedule the tech interview.",
+      "method": "llm"
+    },
+    {
+      "id": "h02",
+      "intent": "status_check",
+      "confidence": 0.98,
+      "flags": [],
+      "reason": "Asks whether the application is still being considered.",
+      "method": "llm"
+    },
+    {
+      "id": "h03",
+      "intent": "status_check",
+      "confidence": 0.97,
+      "flags": [],
+      "reason": "Requests an update after the interview.",
+      "method": "llm"
+    },
+    {
+      "id": "h04",
+      "intent": "withdrawal",
+      "confidence": 0.99,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "Explicitly states they are withdrawing their application.",
+      "method": "llm"
+    },
+    {
+      "id": "h05",
+      "intent": "scheduling",
+      "confidence": 0.99,
+      "flags": [],
+      "reason": "Confirms a proposed interview time.",
+      "method": "llm"
+    },
+    {
+      "id": "h06",
+      "intent": "question",
+      "confidence": 0.85,
+      "flags": [],
+      "reason": "Asks about eligibility and work‑week policy, which are job‑related questions.",
+      "method": "llm"
+    },
+    {
+      "id": "h07",
+      "intent": "offer_compensation",
+      "confidence": 0.99,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "Inquires about negotiating the notice period in the written offer.",
+      "method": "llm"
+    },
+    {
+      "id": "h08",
+      "intent": "other",
+      "confidence": 0.6,
+      "flags": [],
+      "reason": "Provides a comment about waiting without a clear request.",
+      "method": "llm"
+    },
+    {
+      "id": "h09",
+      "intent": "referral",
+      "confidence": 0.99,
+      "flags": [],
+      "reason": "Recommends another candidate for a QA opening.",
+      "method": "llm"
+    },
+    {
+      "id": "h10",
+      "intent": "offer_compensation",
+      "confidence": 0.98,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "Asks about the salary budget for the role.",
+      "method": "llm"
+    },
+    {
+      "id": "h11",
+      "intent": "documents",
+      "confidence": 0.96,
+      "flags": [],
+      "reason": "Candidate is sending a repo and asking about access.",
+      "method": "llm"
+    },
+    {
+      "id": "h12",
+      "intent": "question",
+      "confidence": 0.68,
+      "flags": [],
+      "reason": "Candidate asks to switch communication to a phone call.",
+      "method": "llm"
+    },
+    {
+      "id": "h13",
+      "intent": "withdrawal",
+      "confidence": 0.99,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "Candidate thanks and states they are staying with current team.",
+      "method": "llm"
+    },
+    {
+      "id": "h14",
+      "intent": "documents",
+      "confidence": 0.94,
+      "flags": [],
+      "reason": "Candidate wants to resend reference contact details.",
+      "method": "llm"
+    },
+    {
+      "id": "h15",
+      "intent": "question",
+      "confidence": 0.92,
+      "flags": [],
+      "reason": "Candidate requests feedback after final round.",
+      "method": "llm"
+    },
+    {
+      "id": "h16",
+      "intent": "question",
+      "confidence": 0.9,
+      "flags": [],
+      "reason": "Candidate asks for accessibility accommodations for the interview.",
+      "method": "llm"
+    },
+    {
+      "id": "h17",
+      "intent": "other",
+      "confidence": 0.65,
+      "flags": [],
+      "reason": "Urgent call‑back request does not fit defined intents.",
+      "method": "llm"
+    },
+    {
+      "id": "h18",
+      "intent": "other",
+      "confidence": 0.7,
+      "flags": [],
+      "reason": "Message is a recruiter’s candidate submission, not a candidate query.",
+      "method": "llm"
+    },
+    {
+      "id": "h19",
+      "intent": "offer_compensation",
+      "confidence": 0.98,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "Candidate is negotiating base salary.",
+      "method": "llm"
+    },
+    {
+      "id": "h20",
+      "intent": "question",
+      "confidence": 0.88,
+      "flags": [],
+      "reason": "Candidate asks about equipment for first day.",
+      "method": "llm"
+    },
+    {
+      "id": "h21",
+      "intent": "scheduling",
+      "confidence": 0.99,
+      "flags": [],
+      "reason": "Candidate asks to reschedule interview due to personal issue.",
+      "method": "llm"
+    },
+    {
+      "id": "h22",
+      "intent": "question",
+      "confidence": 0.85,
+      "flags": [],
+      "reason": "Asks what information to provide for background check, a process question.",
+      "method": "llm"
+    },
+    {
+      "id": "h23",
+      "intent": "question",
+      "confidence": 0.9,
+      "flags": [],
+      "reason": "Inquires whether the role is still open and about applying.",
+      "method": "llm"
+    },
+    {
+      "id": "h24",
+      "intent": "scheduling",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "Brief reply confirming availability for interview.",
+      "method": "llm"
+    },
+    {
+      "id": "h25",
+      "intent": "referral",
+      "confidence": 0.98,
+      "flags": [],
+      "reason": "Recommends two colleagues for a role.",
+      "method": "llm"
+    },
+    {
+      "id": "h26",
+      "intent": "offer_compensation",
+      "confidence": 0.97,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "Requests to adjust start date in the offer contract.",
+      "method": "llm"
+    },
+    {
+      "id": "h27",
+      "intent": "withdrawal",
+      "confidence": 0.99,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "Candidate decides not to continue with the process.",
+      "method": "llm"
+    },
+    {
+      "id": "h28",
+      "intent": "question",
+      "confidence": 0.95,
+      "flags": [],
+      "reason": "Asks about overall timeline of the hiring process.",
+      "method": "llm"
+    },
+    {
+      "id": "h29",
+      "intent": "scheduling",
+      "confidence": 0.9,
+      "flags": [],
+      "reason": "Notifies that an interview invitation was declined, affecting scheduling.",
+      "method": "llm"
+    },
+    {
+      "id": "h30",
+      "intent": "offer_compensation",
+      "confidence": 0.93,
+      "flags": [
+        "needs_human"
+      ],
+      "reason": "Questions salary verification documents related to the offer.",
+      "method": "llm"
+    }
+  ],
+  "method": "llm",
+  "provider": "groq",
+  "model": "openai/gpt-oss-120b",
+  "promptVersion": "v1",
+  "warnings": [],
+  "runAt": "2026-10-14T09:13:10.271Z",
+  "seconds": 24.2,
+  "unverifiedLabels": 0,
+  "report": {
+    "total": 30,
+    "correct": 25,
+    "accuracy": 0.833,
+    "perIntent": [
+      {
+        "intent": "scheduling",
+        "precision": 1,
+        "recall": 0.714,
+        "support": 7
+      },
+      {
+        "intent": "status_check",
+        "precision": 1,
+        "recall": 0.667,
+        "support": 3
+      },
+      {
+        "intent": "offer_compensation",
+        "precision": 1,
+        "recall": 1,
+        "support": 5
+      },
+      {
+        "intent": "withdrawal",
+        "precision": 1,
+        "recall": 1,
+        "support": 3
+      },
+      {
+        "intent": "documents",
+        "precision": 1,
+        "recall": 0.667,
+        "support": 3
+      },
+      {
+        "intent": "referral",
+        "precision": 1,
+        "recall": 1,
+        "support": 2
+      },
+      {
+        "intent": "question",
+        "precision": 0.5,
+        "recall": 1,
+        "support": 4
+      },
+      {
+        "intent": "other",
+        "precision": 0.667,
+        "recall": 0.667,
+        "support": 3
+      }
+    ],
+    "confusion": {
+      "scheduling": {
+        "scheduling": 5,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 0,
+        "question": 2,
+        "other": 0
+      },
+      "status_check": {
+        "scheduling": 0,
+        "status_check": 2,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 0,
+        "question": 0,
+        "other": 1
+      },
+      "offer_compensation": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 5,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 0,
+        "question": 0,
+        "other": 0
+      },
+      "withdrawal": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 3,
+        "documents": 0,
+        "referral": 0,
+        "question": 0,
+        "other": 0
+      },
+      "documents": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 2,
+        "referral": 0,
+        "question": 1,
+        "other": 0
+      },
+      "referral": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 2,
+        "question": 0,
+        "other": 0
+      },
+      "question": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 0,
+        "question": 4,
+        "other": 0
+      },
+      "other": {
+        "scheduling": 0,
+        "status_check": 0,
+        "offer_compensation": 0,
+        "withdrawal": 0,
+        "documents": 0,
+        "referral": 0,
+        "question": 1,
+        "other": 2
+      }
+    },
+    "mistakes": [
+      {
+        "id": "h08",
+        "expected": "status_check",
+        "predicted": "other",
+        "confidence": 0.6,
+        "body": "Great process you have. Four weeks and not a word. Really makes me want to work there."
+      },
+      {
+        "id": "h12",
+        "expected": "scheduling",
+        "predicted": "question",
+        "confidence": 0.68,
+        "body": "can u call me instead of email? +92 300 0000000 anytime after 6"
+      },
+      {
+        "id": "h15",
+        "expected": "other",
+        "predicted": "question",
+        "confidence": 0.92,
+        "body": "Hi, I didn't get through after the final round, which is fine, but could you share any feedback on what I could improve?"
+      },
+      {
+        "id": "h16",
+        "expected": "scheduling",
+        "predicted": "question",
+        "confidence": 0.9,
+        "body": "I'm hard of hearing. Would it be possible to have live captions or a written format for the interview?"
+      },
+      {
+        "id": "h22",
+        "expected": "documents",
+        "predicted": "question",
+        "confidence": 0.85,
+        "body": "The background check company is asking for my old employer's address, which closed in 2019. What should I put?"
+      }
+    ],
+    "confidentMistakes": 5,
+    "injection": {
+      "expected": 0,
+      "flagged": 0
+    }
+  }
+}

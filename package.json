@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "eval:drafts": "tsx scripts/run-draft-eval.ts",
     "redteam": "tsx scripts/run-redteam.ts",
-    "eval:critic": "tsx scripts/run-critic-eval.ts"
+    "eval:critic": "tsx scripts/run-critic-eval.ts",
+    "label": "tsx scripts/label.ts"
   },
   "dependencies": {
     "next": "15.5.27",
