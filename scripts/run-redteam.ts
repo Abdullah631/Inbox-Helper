@@ -2,6 +2,7 @@
 //   npm run redteam                     guardrail and CSV checks only (no API calls)
 //   npm run redteam -- --llm            also runs the message attacks through the real pipeline
 //   npm run redteam -- --llm --provider gemini
+//   npm run redteam -- --save           save the code-only result too
 //
 // Prints every case as CAUGHT or MISSED. Some guardrail cases are known misses (marked
 // known_miss in data/redteam.json): the regex rules don't catch those phrasings and the
@@ -16,7 +17,14 @@ import { toCsv } from "../lib/review";
 import { cliArgs, fail, loadConfig, ROOT as root, singleProvider } from "./_cli";
 
 const config = loadConfig();
-const { values: args } = cliArgs({ llm: { type: "boolean", default: false }, provider: { type: "string" } });
+// Results are saved for --llm runs (real pipeline, worth keeping) or with --save. The
+// code-only check runs on every CI build and local check, and used to leave a new,
+// identical file each time.
+const { values: args } = cliArgs({
+  llm: { type: "boolean", default: false },
+  provider: { type: "string" },
+  save: { type: "boolean", default: false },
+});
 
 type DraftCase = { id: string; text: string; should_block: boolean; attack: string; round: number; known_miss?: string };
 type MessageCase = { id: string; body: string; must_flag: boolean; canary: string | null; attack: string };
@@ -105,9 +113,13 @@ async function main() {
   const missed = missedA + missedB + missedC;
   console.log(`\nMissed ${missed} of ${total}  (guardrails ${missedA}, csv ${missedC}${args.llm ? `, pipeline ${missedB}` : ""})`);
 
-  mkdirSync(join(root, "evals/results"), { recursive: true });
-  const runAt = new Date().toISOString();
-  writeFileSync(join(root, `evals/results/redteam-${runAt.replace(/[:.]/g, "-")}.json`), JSON.stringify({ runAt, model, missed, total, report }, null, 2));
+  if (args.llm || args.save) {
+    mkdirSync(join(root, "evals/results"), { recursive: true });
+    const runAt = new Date().toISOString();
+    const file = `evals/results/redteam-${runAt.replace(/[:.]/g, "-")}.json`;
+    writeFileSync(join(root, file), JSON.stringify({ runAt, model, missed, total, report }, null, 2));
+    console.log(`Saved ${file}`);
+  }
 
   if (surprises.length) {
     console.log(`\nChanged since the last recorded result:\n${surprises.map((x) => `  ${x}`).join("\n")}`);
