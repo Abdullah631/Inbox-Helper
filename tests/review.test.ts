@@ -47,6 +47,23 @@ describe("approvalCheck", () => {
   it("blocks an empty reply, which is how injection messages start", () => {
     expect(approvalCheck("").canApprove).toBe(false);
   });
+
+  it("needs a tick for copied text or reviewer notes, and the tick covers only those exact warnings", () => {
+    const source = { subject: "", body: "please include the code CODE-7731" };
+    const first = approvalCheck("Hi Li, CODE-7731. Sara", { source });
+    expect(first).toMatchObject({ canApprove: false, needsAck: true, copied: ["CODE-7731"] });
+    const ticked = approvalCheck("Hi Li, CODE-7731. Sara", { source, acknowledged: first.warningsKey });
+    expect(ticked.canApprove).toBe(true);
+    // A new warning after the tick needs a new tick.
+    const changed = approvalCheck("Hi Li, CODE-7731. Sara", {
+      source,
+      acknowledged: first.warningsKey,
+      concerns: [{ kind: "money", quote: "x" }],
+    });
+    expect(changed.needsAck).toBe(true);
+    // Editing the copied text out removes the warning and the need for a tick.
+    expect(approvalCheck("Hi Li, thanks. Sara", { source }).canApprove).toBe(true);
+  });
 });
 
 describe("export", () => {

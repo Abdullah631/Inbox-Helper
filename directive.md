@@ -95,6 +95,13 @@ and most rules below exist because something went wrong without them.
   fixed. Report the new round's number.
 - A safety check that a second model performs should be done by a different
   model when one is available, and the UI should say which one did it.
+- Run the pipeline red-team on every provider the app can use, starting with the
+  one production uses first. On Day 5 a "12 of 12" result turned out to be
+  Gemini only; Groq let r02 through.
+- Use the deployed app yourself with the attack data, and read every card. That,
+  not a report, is how the last gap of the week was found.
+- For every attack, also ask what happens if the model obeys completely. The code
+  layer has to stop it on its own (`npm run redteam`, section D).
 
 ## Writing docs and logs
 

@@ -71,7 +71,7 @@ export const MessageCard = memo(function MessageCard({ message: m, classificatio
         </div>
       )}
 
-      {review ? <DraftEditor id={m.id} review={review} dispatch={dispatch} /> : busy ? <p className="draft-unchecked">Writing a draft...</p> : null}
+      {review ? <DraftEditor id={m.id} review={review} source={m} dispatch={dispatch} /> : busy ? <p className="draft-unchecked">Writing a draft...</p> : null}
     </article>
   );
 });

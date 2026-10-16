@@ -14,6 +14,19 @@ const INJECTION_PATTERNS: RegExp[] = [
   /\b(as an ai|dear (ai|assistant|chatbot|llm|bot|model))\b/i,
   /^\s*(system|assistant)\s*:/im,
   /\b(note|message|instructions?) (to|for) (the |any )?(ai|assistant|model|classifier|reviewer|bot)\b/i,
+  // Added Day 5 after r02 got past both Groq's model and these patterns. Each one is a
+  // kind of message, not a phrase from r02, and none of them flags any of the 90 real
+  // messages in data/ (tests/flags.test.ts checks that).
+  // Talking to whoever or whatever handles the inbox, instead of to the recruiter.
+  // Only when the target is this message or the replies: "forward this to whoever
+  // handles referrals" is a normal request and must not match.
+  /\b(whoever|whatever|whomever|anyone|anybody)\b[^\n]{0,20}\b(drafts?|writes?|reads?|answers?|sorts?)\b[^\n]{0,15}\b(this|these|replies|messages|emails|inbox|here)\b/i,
+  // Addressing a tool directly: "to the assistant sorting this inbox", "to any AI reading this".
+  /\b(to|for|dear|hey|attention)\s+(the\s+|any\s+|all\s+)?(ai|a\.i\.|assistant|chatbot|bot|llm|model|system|tool|automation)s?\s+(reading|sorting|drafting|writing|answering|processing|handling|that (reads|sorts|drafts|writes|answers)|here\b)/i,
+  // Asking for specific text inside the reply: a code, word or phrase, or a fixed opening.
+  /\b(include|add|insert|put|append|mention|use|reply with|respond with)\b[^\n]{0,40}\b(code|phrase|word|token|string|number|line)\b[^\n]{0,60}\b(your|the)\s+(reply|answer|response|email)\b/i,
+  /\b(reply|respond|answer)\s+with\s+the\s+(word|phrase|code)\b/i,
+  /\b(start|begin|end|open|close|sign off)\s+(your|the)\s+(reply|answer|response|email)\s+with\b/i,
 ];
 
 export function looksLikeInjectionText(text: string): boolean {

@@ -156,6 +156,9 @@ fixed for, and that round got 11 of 13 through.
 
 ## What surprised me
 
+(Correction made on Day 5: the run below was on Gemini. On Groq, the model the
+live site uses first, the same 12 messages stopped 11; r02 got through. See day5.md.)
+
 How differently the two safety layers held up. The model stopped all 12 hostile
 messages, including a fake SYSTEM message, an injection in Spanish and one
 trying to leak another candidate's name from the same batch. My hand-written

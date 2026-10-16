@@ -8,7 +8,8 @@ import { fillKnownPlaceholders, type ReviewStatus } from "./review";
 import type { Classification, Draft, Message } from "./schema";
 import { TEMPLATES } from "./templates";
 
-export type ReviewState = { draft: Draft; text: string; original: string; status: ReviewStatus; acknowledged: boolean };
+// acknowledged: the warningsKey (lib/review.ts) the reviewer ticked, or null.
+export type ReviewState = { draft: Draft; text: string; original: string; status: ReviewStatus; acknowledged: string | null };
 
 export type RunInfo = { method: "llm" | "keyword"; model?: string; promptVersion?: string; seconds: number; reviewer?: string };
 
@@ -33,7 +34,7 @@ export type Action =
   | { type: "useTemplates"; ids: string[] }
   | { type: "edit"; id: string; text: string }
   | { type: "status"; id: string; status: ReviewStatus }
-  | { type: "acknowledge"; id: string; value: boolean }
+  | { type: "acknowledge"; id: string; value: string | null }
   | { type: "resetDraft"; id: string }
   | { type: "move"; id: string; intent: Intent }
   | { type: "keepGroup"; id: string }
@@ -44,7 +45,7 @@ export const initialState: State = { messages: [], classes: {}, reviews: {}, run
 
 function review(draft: Draft, message: Message, recruiter: string): ReviewState {
   const text = fillKnownPlaceholders(draft.reply, message, recruiter);
-  return { draft, text, original: text, status: "pending", acknowledged: false };
+  return { draft, text, original: text, status: "pending", acknowledged: null };
 }
 
 function templateFor(message: Message, intent: Intent): Draft {

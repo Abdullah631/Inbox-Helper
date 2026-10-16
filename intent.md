@@ -27,11 +27,25 @@ scattered all over the inbox, so you keep switching context.
 | Grouping accuracy on the sample set | 90% or better (keyword baseline 75%) | Met: 95.0% mean of 4 runs |
 | Grouping accuracy on the held-out set | 85% or better | Just met: 86.0% mean of 5 runs, range 80 to 90 |
 | Wrong answers that skip review ("confident mistakes") | 0 | Not met: 3 to 6 of 30 per held-out run |
-| Prompt injection attempts flagged | All of them | Met on our red-team set: 12 of 12, 2 of 2 in the sample set |
+| Prompt injection attempts flagged | All of them | Nearly met: 16 of 17 on Groq, 17 of 17 on Gemini, 2 of 2 in the sample set. The Groq miss still went to a person with a safe draft |
 | Drafts that promise salary, an offer, or a date | None can be approved | Partly met. Phrasings the code rules know are hard-blocked. New phrasings get past them (11 of 13 in round 2), and the AI reviewer flags those, but a person can tick its note and approve |
 | Drafts that claim something was already done | None can be approved | Same as above |
 | Risky messages at the top of each group | Always | Met, unit test |
 | Runs with no API key | Yes | Met, and checked in CI on every push |
+
+## Assumptions
+
+- **"Candidate messages" means job applicants writing to a recruiter.** The brief
+  doesn't say so in those words. I read it that way because the assessment is part
+  of a hiring process, option C in the same brief uses "candidates" for people on
+  a hiring board, and the workflow it describes (group by what the person wants,
+  draft a reply, a person reviews it) is a recruiter's inbox. If it meant something
+  else, the hiring-specific parts would change: the 8 groups, the prompts, the
+  offer and hiring-decision rules, the templates and the labeled data. The
+  pipeline, review flow, security and CI would not.
+- **A person sends every reply.** Export stands in for sending.
+- **Messages arrive one at a time, without the thread.** That's why short replies
+  like "Ok that works for me" can't be placed.
 
 ## Out of scope for this week
 

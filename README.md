@@ -52,8 +52,13 @@ paste / upload  ->  /api/classify  ->  /api/draft  ->  review in the browser  ->
      policy, has a link or email, contains invisible or look-alike characters,
      talks about being an AI, is over 120 words, or still has a [PLACEHOLDER].
   2. A second model (`lib/critic.ts`) reads each draft for the same risks by
-     meaning. Its notes must be ticked as checked before Approve unlocks. It
-     prefers a different model from the one that wrote the draft.
+     meaning. It prefers a different model from the one that wrote the draft.
+  3. A copied-text check (`lib/echo.ts`), no model involved: if a draft repeats
+     a code, a shouted word or a quoted phrase from the candidate's message,
+     which is what injection attempts ask for, it's flagged.
+
+  Notes from checks 2 and 3 must be ticked as checked before Approve unlocks, and
+  a tick only covers the warnings that were shown when you ticked.
 - **Without a key, or if a model fails**, sorting falls back to keyword rules
   and drafting to templates, per batch, with a visible warning.
 - **Providers** (`lib/llm.ts`): Groq first, Gemini as failover. Plain `fetch`,
@@ -94,10 +99,10 @@ real candidate data through it. Keyword mode sends nothing anywhere.
 ## Checks
 
 ```bash
-npm test                 # 226 unit tests; never touch the network
+npm test                 # 254 unit tests; never touch the network
 npm run typecheck
 npm run lint
-npm run redteam          # guardrail and CSV attacks; fails on any change
+npm run redteam          # guardrail, CSV and "fully obedient model" attacks; fails on any change
 npm run build
 ```
 
@@ -145,9 +150,21 @@ With 30 held-out messages each one is worth 3.3 points, so read these as "mid
 80s", not as precise numbers.
 
 Drafting: draft prompt v2 gets 5 of 58 drafts blocked by the code rules (v1:
-10 to 12). Red-team: the pipeline stops 12 of 12 hostile messages; the code
-rules stop 17 of 28 draft attacks and the AI reviewer stopped all 28 when
-measured on Day 4; CSV formula injection is defused in all 4 cases.
+10 to 12).
+
+Red-team (`data/redteam.json`):
+
+| Layer | Result |
+|---|---|
+| Hostile messages through the whole pipeline (17) | Groq 16 of 17, Gemini 17 of 17 |
+| Code alone, if the model obeyed every attacker (13) | 12 of 13 |
+| Draft attacks on the code rules (28) | 17 of 28; the AI reviewer stopped all 28 (Day 4) |
+| CSV formula injection (4) | 4 of 4 |
+
+Until Day 5 the pipeline result was reported as "12 of 12". That was only true on
+Gemini: on Groq, the model the live site uses first, one attack got through. I
+found it by testing the live site by hand; `logs/day5.md` has how, and what
+changed.
 
 Known gaps:
 
@@ -155,6 +172,10 @@ Known gaps:
   per run, so between 1 in 10 and 1 in 5. Every reply is still reviewed, but a wrong group may not get the
   extra attention it needs.
 - The AI reviewer raises a false alarm on about 1 in 10 good drafts.
+- Nothing in code stops one candidate's details from appearing in another's
+  reply; only the model refusing does (red-team r08).
+- Every attack round was written by the same agent that wrote the fixes. An
+  independent red-team would be the next real test.
 - Free tiers allow 200,000 tokens a day (Groq) shared by everyone using the
   site; a 60-message inbox takes one to two minutes in AI mode.
 - One message gets one group. No thread context, so "Ok that works for me"

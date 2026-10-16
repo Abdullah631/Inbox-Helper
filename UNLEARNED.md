@@ -65,6 +65,11 @@ my token budget, after four days of green tests. Two of my tests had been writte
 to expect the buggy behavior. My test suite only checks what I already thought
 of, so now it's the first reviewer, not the last.
 
+The last gap of the week came after all of that. Every report was green. Then I
+uploaded the attack file into the live site and read the cards myself, and one
+message got its code word into my reply. The automated red-team had only ever
+run on the backup model. Green reports aren't the same as having used the thing.
+
 ## What I'd tell the next person
 
 Measure before you believe, measure on data you haven't touched, read what the

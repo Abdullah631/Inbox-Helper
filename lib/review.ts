@@ -1,3 +1,5 @@
+import type { Concern } from "./concerns";
+import { copiedFromMessage } from "./echo";
 import { checkDraft, placeholdersIn, type Issue } from "./guardrails";
 import type { Message } from "./schema";
 
@@ -21,14 +23,47 @@ export function fillKnownPlaceholders(text: string, message: Message, recruiterN
   return out;
 }
 
-export type ApprovalCheck = { canApprove: boolean; issues: Issue[]; placeholders: string[] };
+export type ApprovalCheck = {
+  canApprove: boolean;
+  // Hard blocks: the text has to change.
+  issues: Issue[];
+  placeholders: string[];
+  // Soft warnings: the reviewer ticks that they checked them.
+  concerns: Concern[];
+  copied: string[];
+  // Identifies this exact set of soft warnings. A tick is stored against it, so a new
+  // warning (say, after an edit) needs a new tick.
+  warningsKey: string | null;
+  needsAck: boolean;
+};
 
-// A draft can be approved only when it passes every guardrail and has no
-// placeholders left. Both are re-checked on every edit.
-export function approvalCheck(text: string): ApprovalCheck {
+type CheckOptions = {
+  // The candidate's message, for the copied-text check (lib/echo.ts).
+  source?: Pick<Message, "subject" | "body">;
+  // Notes from the AI reviewer (lib/critic.ts).
+  concerns?: Concern[] | null;
+  // The warningsKey the reviewer ticked, if any.
+  acknowledged?: string | null;
+};
+
+// Re-checked on every edit. Approve needs: no guardrail issues, no placeholders left,
+// and any soft warnings ticked as checked.
+export function approvalCheck(text: string, opts: CheckOptions = {}): ApprovalCheck {
   const issues = checkDraft(text);
   const placeholders = placeholdersIn(text);
-  return { canApprove: issues.length === 0 && placeholders.length === 0, issues, placeholders };
+  const concerns = opts.concerns ?? [];
+  const copied = opts.source ? copiedFromMessage(text, opts.source) : [];
+  const warningsKey = concerns.length || copied.length ? JSON.stringify({ concerns, copied }) : null;
+  const needsAck = warningsKey !== null && opts.acknowledged !== warningsKey;
+  return {
+    canApprove: issues.length === 0 && placeholders.length === 0 && !needsAck,
+    issues,
+    placeholders,
+    concerns,
+    copied,
+    warningsKey,
+    needsAck,
+  };
 }
 
 export type ApprovedReply = { id: string; to: string; subject: string; body: string };

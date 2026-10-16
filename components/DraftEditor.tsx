@@ -3,6 +3,7 @@
 import { useMemo, type Dispatch } from "react";
 import { CONCERN_LABELS } from "@/lib/concerns";
 import type { Action, ReviewState } from "@/lib/review-state";
+import type { Message } from "@/lib/schema";
 import { approvalCheck } from "@/lib/review";
 import { INJECTION_NOTE } from "@/lib/templates";
 import { SOURCE_LABEL } from "@/lib/ui";
@@ -13,18 +14,21 @@ function textRows(text: string): number {
   return Math.min(14, Math.max(3, lines + 1));
 }
 
-export function DraftEditor({ id, review, dispatch }: { id: string; review: ReviewState; dispatch: Dispatch<Action> }) {
-  const check = useMemo(() => approvalCheck(review.text), [review.text]);
+type Props = { id: string; review: ReviewState; source: Pick<Message, "subject" | "body">; dispatch: Dispatch<Action> };
+
+export function DraftEditor({ id, review, source, dispatch }: Props) {
+  const check = useMemo(
+    () => approvalCheck(review.text, { source, concerns: review.draft.concerns, acknowledged: review.acknowledged }),
+    [review.text, review.draft.concerns, review.acknowledged, source],
+  );
   const done = review.status !== "pending";
-  const concerns = review.draft.concerns ?? [];
-  const needsAck = concerns.length > 0 && !review.acknowledged;
-  const canApprove = check.canApprove && !needsAck;
+  const { concerns, copied, needsAck, canApprove } = check;
   const blockedReason = check.issues.length
     ? "Fix the problems listed before approving."
     : check.placeholders.length
       ? `Fill in ${check.placeholders.join(", ")} first.`
       : needsAck
-        ? "Tick that you've checked the AI reviewer's notes."
+        ? "Tick that you've checked the notes above."
         : "";
 
   if (review.status === "rejected") {
@@ -74,19 +78,39 @@ export function DraftEditor({ id, review, dispatch }: { id: string; review: Revi
         </ul>
       )}
 
-      {!done && concerns.length > 0 && (
+      {!done && check.warningsKey && (
         <div className="concerns">
-          <div className="concerns-head">
-            AI reviewer notes
-            {review.text !== review.original && <span> &middot; found before your edits</span>}
-          </div>
-          <ul>
-            {concerns.map((c, i) => (
-              <li key={i}>{CONCERN_LABELS[c.kind]}{c.quote && <>: <q>{c.quote}</q></>}</li>
-            ))}
-          </ul>
+          {copied.length > 0 && (
+            <>
+              <div className="concerns-head">Repeats text from the candidate&apos;s message</div>
+              <ul>
+                {copied.map((c) => <li key={c}><q>{c}</q></li>)}
+              </ul>
+              <p className="concerns-why">
+                Attackers ask for a code or phrase in the reply to get their text sent out. Fine if it&apos;s a real
+                reference you meant to repeat.
+              </p>
+            </>
+          )}
+          {concerns.length > 0 && (
+            <>
+              <div className="concerns-head">
+                AI reviewer notes
+                {review.text !== review.original && <span> &middot; found before your edits</span>}
+              </div>
+              <ul>
+                {concerns.map((c, i) => (
+                  <li key={i}>{CONCERN_LABELS[c.kind]}{c.quote && <>: <q>{c.quote}</q></>}</li>
+                ))}
+              </ul>
+            </>
+          )}
           <label className="ack">
-            <input type="checkbox" checked={review.acknowledged} onChange={(e) => dispatch({ type: "acknowledge", id, value: e.target.checked })} />
+            <input
+              type="checkbox"
+              checked={!needsAck}
+              onChange={(e) => dispatch({ type: "acknowledge", id, value: e.target.checked ? check.warningsKey : null })}
+            />
             I&apos;ve checked these
           </label>
         </div>

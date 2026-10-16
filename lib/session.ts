@@ -11,7 +11,9 @@ const ReviewStateSchema = z.object({
   text: z.string(),
   original: z.string(),
   status: z.enum(["pending", "approved", "rejected"]),
-  acknowledged: z.boolean().default(false),
+  // Sessions saved before Day 5 stored a plain true/false. Those read as "not ticked",
+  // so old work still loads and the warnings are simply shown again.
+  acknowledged: z.union([z.string(), z.boolean(), z.null()]).default(null).transform((v) => (typeof v === "string" ? v : null)),
 });
 
 const RunInfoSchema = z.object({

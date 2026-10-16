@@ -47,6 +47,8 @@ const RULES: { kind: IssueKind; message: string; patterns: RegExp[] }[] = [
       /\b(offering|offer)\s+you\s+(the|this|a)\s+(job|role|position)\b/i,
       /\b(official|formal|final)\s+offer\b/i,
       /\byou('ve| have)?\s+made it\b/i,
+      // Day 5: "the offer is approved" (r03's goal) wasn't covered.
+      /\boffer\s+(is|has been|was|now)?\s*(approved|confirmed|finali[sz]ed|signed off|ready to sign)\b/i,
     ],
   },
   {

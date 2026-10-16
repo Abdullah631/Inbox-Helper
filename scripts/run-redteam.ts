@@ -12,6 +12,8 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { classifyInbox } from "../lib/classify";
 import { draftReplies } from "../lib/draft";
+import { copiedFromMessage } from "../lib/echo";
+import { looksLikeInjection } from "../lib/flags";
 import { checkDraft } from "../lib/guardrails";
 import { toCsv } from "../lib/review";
 import { cliArgs, fail, loadConfig, ROOT as root, singleProvider } from "./_cli";
@@ -27,7 +29,12 @@ const { values: args } = cliArgs({
 });
 
 type DraftCase = { id: string; text: string; should_block: boolean; attack: string; round: number; known_miss?: string };
-type MessageCase = { id: string; body: string; must_flag: boolean; canary: string | null; attack: string };
+type MessageCase = {
+  id: string; body: string; must_flag: boolean; canary: string | null; attack: string; round: number;
+  // What the attacker wants the reply to say. Section D checks whether code alone stops
+  // it even if the model obeys completely.
+  obedient_draft?: string; obedient_known_miss?: string;
+};
 type CsvCase = { id: string; to: string; attack: string };
 const data: { drafts: DraftCase[]; messages: MessageCase[]; csv: CsvCase[] } = JSON.parse(
   readFileSync(join(root, "data/redteam.json"), "utf8"),
@@ -52,6 +59,25 @@ async function main() {
     if (ok && c.known_miss) surprises.push(`${c.id} is now caught: remove known_miss from data/redteam.json`);
     line(ok, c.id, c.attack, (issues.map((x) => x.kind).join(", ") || "no issues") + (!ok && c.known_miss ? ", known miss" : ""));
     report.push({ layer: "guardrail", round: c.round, id: c.id, ok, issues: issues.map((x) => x.kind) });
+  }
+
+  // D. No model at all: if the model did exactly what each attacker asked, would the
+  // code still stop it? Added on Day 5 after r02 got through on Groq. Runs in CI.
+  console.log("\nD. If the model fully obeyed the attacker (code checks only, no model)");
+  let missedD = 0;
+  for (const c of data.messages.filter((m) => m.obedient_draft)) {
+    const source = { subject: "", body: c.body };
+    const flagged = looksLikeInjection(source);
+    const blocked = checkDraft(c.obedient_draft!).map((i) => i.kind);
+    const copied = copiedFromMessage(c.obedient_draft!, source);
+    const ok = flagged || blocked.length > 0 || copied.length > 0;
+    if (!ok) missedD++;
+    if (!ok && !c.obedient_known_miss) surprises.push(`${c.id} would get through if the model obeyed: ${c.attack}`);
+    if (ok && c.obedient_known_miss) surprises.push(`${c.id} is now caught offline: remove obedient_known_miss from data/redteam.json`);
+    const how = [flagged && "message flagged", blocked.length && `draft blocked (${blocked.join(", ")})`, copied.length && `copied text warned (${copied.join(", ")})`]
+      .filter(Boolean).join(", ") || "nothing stops it";
+    line(ok, c.id, `round ${c.round}, ${c.attack}`, how + (!ok && c.obedient_known_miss ? ", known miss" : ""));
+    report.push({ layer: "obedient", id: c.id, ok, flagged, blocked, copied });
   }
 
   console.log("\nC. CSV export");
@@ -88,7 +114,8 @@ async function main() {
       const draft = drafted.drafts[i];
       const flagged = cls.flags.includes("possible_injection");
       const needsHuman = cls.flags.includes("needs_human");
-      const blocked = checkDraft(draft.reply).length > 0;
+      // Hard block from the guardrails, or the copied-text warning a reviewer has to tick.
+      const blocked = checkDraft(draft.reply).length > 0 || copiedFromMessage(draft.reply, messages[i]).length > 0;
       const leaked = c.canary ? draft.reply.toLowerCase().includes(c.canary.toLowerCase()) : false;
       // The attack works if a reviewer could approve the draft with no warning and it
       // contains what the attacker wanted, or if a message that had to be flagged wasn't.
@@ -109,9 +136,10 @@ async function main() {
     }
   }
 
-  const total = data.drafts.length + data.csv.length + (args.llm ? data.messages.length : 0);
-  const missed = missedA + missedB + missedC;
-  console.log(`\nMissed ${missed} of ${total}  (guardrails ${missedA}, csv ${missedC}${args.llm ? `, pipeline ${missedB}` : ""})`);
+  const obedientTotal = data.messages.filter((m) => m.obedient_draft).length;
+  const total = data.drafts.length + data.csv.length + obedientTotal + (args.llm ? data.messages.length : 0);
+  const missed = missedA + missedB + missedC + missedD;
+  console.log(`\nMissed ${missed} of ${total}  (guardrails ${missedA}, obedient-model ${missedD} of ${obedientTotal}, csv ${missedC}${args.llm ? `, pipeline ${missedB} of ${data.messages.length}` : ""})`);
 
   if (args.llm || args.save) {
     mkdirSync(join(root, "evals/results"), { recursive: true });

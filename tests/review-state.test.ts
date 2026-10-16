@@ -140,6 +140,12 @@ describe("saved sessions", () => {
     expect(parseSession(JSON.stringify(t), now)).toBeNull();
   });
 
+  it("loads sessions saved before Day 5, when the tick was true/false, as not ticked", () => {
+    const s = JSON.parse(good());
+    s.reviews.a.acknowledged = true;
+    expect(parseSession(JSON.stringify(s), now)?.reviews.a.acknowledged).toBeNull();
+  });
+
   it("forgets sessions older than the time limit", () => {
     expect(parseSession(good(), now + 8 * 24 * 3600 * 1000)).toBeNull();
     expect(parseSession(good(), now + 60_000)).not.toBeNull();
