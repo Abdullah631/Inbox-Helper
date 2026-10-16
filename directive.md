@@ -2,7 +2,8 @@
 
 These are the standing instructions for the coding agent on this repo.
 `CLAUDE.md` imports this file, so Claude Code picks it up at the start of every
-session. I'll keep editing it through the week; git history has every version.
+session. This is the final version after 5 days; git history has every earlier one,
+and most rules below exist because something went wrong without them.
 
 ## Before you start
 
@@ -15,14 +16,23 @@ session. I'll keep editing it through the week; git history has every version.
 ## How to work
 
 1. Write the test with the code, not after. New functions in `lib/` get a test in `tests/`.
+   Tests never touch the network or depend on keys in the shell (`tests/setup.ts`).
+   For a security check, break the code on purpose once and make sure the test fails.
 2. After any change to the classifier rules or a prompt, run `npm run eval` and
    tell me the accuracy before and after.
 3. If you change something just to fix one message in the eval set, say so. That's
    overfitting and I don't want it counted as progress.
-4. Keep changes small, one thing at a time. Run `npm test` and `npm run typecheck`
-   before you tell me something is done.
-5. If something failed, or you skipped it or worked around it, put that at the
+4. Keep changes small, one thing at a time. Before saying something is done, run
+   `npm test`, `npm run typecheck`, `npm run lint`, `npm run redteam` and
+   `npm run build`. CI runs the same and has to be green.
+5. Check UI changes in a real browser (light, dark, phone width) and look for
+   console errors and CSP violations. Unit tests didn't catch any of the UI bugs
+   found this week.
+6. If something failed, or you skipped it or worked around it, put that at the
    top of your reply, not at the bottom.
+7. For a big review, get independent reviewers (security, engineering, QA) to read
+   everything, then verify each finding yourself before changing code. On Day 5
+   that found real bugs that four days of my own testing had missed.
 
 ## Product rules
 
@@ -38,9 +48,17 @@ session. I'll keep editing it through the week; git history has every version.
 
 ## Code
 
-- Logic goes in `lib/`, with no React or Next imports there.
-- Validate everything coming in from outside with zod: API requests, LLM
-  output, uploaded files.
+- Logic goes in `lib/`, with no React or Next imports there. State changes in the
+  UI go through the reducer in `lib/review-state.ts`, so they can be tested.
+- Validate everything that comes from outside with zod: API requests, LLM output,
+  uploaded files, saved browser sessions, and API responses in the browser.
+- No magic numbers. Sizes and thresholds go in `lib/limits.ts`; anything an
+  operator might change per deployment goes in `lib/server-config.ts` and
+  `.env.example`. Values that depend on each other get a test that says so.
+- Browser code never imports server modules (ESLint enforces the list). Secrets
+  never get a `NEXT_PUBLIC_` name.
+- Errors shown to users or written to logs carry our own message, never a raw
+  provider body or candidate text.
 - Comments explain why, not what. Keep files short.
 
 ## Prompts
@@ -88,4 +106,6 @@ people will read as my work. When you help with them:
 - Write the way I'd write notes to a teammate: first person, short sentences,
   plain words. No hype, no filler, no "it's not X, it's Y", no lists of three
   for the sake of it.
-- Only write down things that actually happened. Leave my reflections for me to write.
+- Only write down things that actually happened.
+- When you draft a reflection section for me, say in that day's log that you
+  drafted it, so a reader knows. I check and edit it.

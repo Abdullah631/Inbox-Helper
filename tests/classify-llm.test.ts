@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { classifyInbox, NoProviderError } from "@/lib/classify";
 import { BATCH_SIZE, classifyWithLlm, parseOutput, renderBatch } from "@/lib/classify-llm";
-import type { LlmProvider } from "@/lib/llm";
+import { LlmError, type LlmProvider } from "@/lib/llm";
 import type { Prompt } from "@/lib/prompts";
 import type { Message } from "@/lib/schema";
 
@@ -78,10 +78,16 @@ describe("classifyWithLlm", () => {
   });
 
   it("falls back when the API call throws", async () => {
-    const p = fakeProvider(new Error("HTTP 500"));
+    const p = fakeProvider(new LlmError("HTTP 500 (provider error)", 500));
     const { classifications, warnings } = await classifyWithLlm([msg("a")], p, prompt);
     expect(classifications[0].method).toBe("fallback");
     expect(warnings[0]).toMatch(/HTTP 500/);
+  });
+
+  it("never shows the text of unexpected errors, which could carry internal details", async () => {
+    const { warnings } = await classifyWithLlm([msg("a")], fakeProvider(new Error("ECONNREFUSED 10.0.0.5:443")), prompt);
+    expect(warnings[0]).toMatch(/Unexpected error/);
+    expect(warnings[0]).not.toContain("10.0.0.5");
   });
 
   it("splits large inboxes into batches and keeps input order", async () => {

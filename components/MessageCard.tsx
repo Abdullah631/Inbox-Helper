@@ -1,49 +1,35 @@
 "use client";
 
-import { LOW_CONFIDENCE } from "@/lib/flags";
-import type { GroupedItem } from "@/lib/group";
-import { INTENT_INFO, type Intent } from "@/lib/intents";
-import { approvalCheck, type ReviewStatus } from "@/lib/review";
-import type { Draft, Flag } from "@/lib/schema";
-import { INJECTION_NOTE } from "@/lib/templates";
-
-export type ReviewState = { draft: Draft; text: string; original: string; status: ReviewStatus; acknowledged?: boolean };
-
-const FLAG_UI: Record<Flag, { label: string; tone: string }> = {
-  possible_injection: { label: "Possible injection", tone: "badge-danger" },
-  needs_human: { label: "Needs a person", tone: "badge-warn" },
-  low_confidence: { label: "Low confidence", tone: "badge-warn" },
-  intent_disputed: { label: "Group disputed", tone: "badge-warn" },
-};
-
-// Tall enough to show the whole reply, counting line breaks as well as wrapping.
-function textRows(text: string): number {
-  const lines = text.split("\n").reduce((n, line) => n + Math.max(1, Math.ceil(line.length / 95)), 0);
-  return Math.min(14, Math.max(3, lines + 1));
-}
-
-const SOURCE_LABEL: Record<Draft["source"], string> = { llm: "AI draft", template: "Template", none: "Write your own" };
+import { memo, type Dispatch } from "react";
+import { LOW_CONFIDENCE } from "@/lib/limits";
+import { INTENT_INFO } from "@/lib/intents";
+import type { Action, ReviewState } from "@/lib/review-state";
+import type { Classification, Message } from "@/lib/schema";
+import { FLAG_UI } from "@/lib/ui";
+import { DraftEditor } from "./DraftEditor";
 
 type Props = {
-  item: GroupedItem;
+  message: Message;
+  classification: Classification;
   review?: ReviewState;
-  onText: (text: string) => void;
-  onAcknowledge: (value: boolean) => void;
-  onStatus: (status: ReviewStatus) => void;
-  onReset: () => void;
-  onMove: (intent: Intent) => void;
-  onKeepGroup: () => void;
+  // True while a run is in progress: moving a message then would race with its draft.
+  busy: boolean;
+  dispatch: Dispatch<Action>;
 };
 
-export function MessageCard({ item, review, onText, onAcknowledge, onStatus, onReset, onMove, onKeepGroup }: Props) {
-  const { message: m, classification: c } = item;
+// Memoized and given stable props (state objects and dispatch), so typing in one reply
+// re-renders that card only, not every card on the page (Day 5 review).
+export const MessageCard = memo(function MessageCard({ message: m, classification: c, review, busy, dispatch }: Props) {
   const pct = Math.round(c.confidence * 100);
-  const tone = review?.status === "approved" ? " approved" : review?.status === "rejected" ? " rejected"
-    : c.flags.includes("possible_injection") ? " injection" : c.flags.length ? " flagged" : "";
+  const tone =
+    review?.status === "approved" ? " approved"
+      : review?.status === "rejected" ? " rejected"
+        : c.flags.includes("possible_injection") ? " injection"
+          : c.flags.length ? " flagged" : "";
   const dispute = c.flags.includes("intent_disputed") ? review?.draft.dispute : null;
 
   return (
-    <article className={`card msg${tone}`}>
+    <article className={`card msg${tone}`} aria-label={`Message from ${m.from}`}>
       <div className="msg-top">
         <div className="msg-from">
           <strong>{m.from}</strong>
@@ -75,126 +61,17 @@ export function MessageCard({ item, review, onText, onAcknowledge, onStatus, onR
             {INTENT_INFO[c.intent].label}.
           </span>
           <span className="dispute-actions">
-            <button type="button" className="btn btn-sm" onClick={() => onMove(dispute.suggested)}>
+            <button type="button" className="btn btn-sm" disabled={busy} onClick={() => dispatch({ type: "move", id: m.id, intent: dispute.suggested })}>
               Move to {INTENT_INFO[dispute.suggested].label}
             </button>
-            <button type="button" className="btn btn-sm btn-ghost" onClick={onKeepGroup}>Keep</button>
+            <button type="button" className="btn btn-sm btn-ghost" disabled={busy} onClick={() => dispatch({ type: "keepGroup", id: m.id })}>
+              Keep
+            </button>
           </span>
         </div>
       )}
 
-      {review ? <DraftEditor review={review} onText={onText} onAcknowledge={onAcknowledge} onStatus={onStatus} onReset={onReset} /> : null}
+      {review ? <DraftEditor id={m.id} review={review} dispatch={dispatch} /> : busy ? <p className="draft-unchecked">Writing a draft...</p> : null}
     </article>
   );
-}
-
-const CONCERN_LABEL: Record<string, string> = {
-  money: "May mention or promise pay",
-  offer: "May imply an offer",
-  decision: "May state a hiring decision",
-  date: "Names a day or time",
-  claims_action: "Says something was already done",
-  company_fact: "States a company fact",
-  contact: "Has a link or contact detail",
-  ai: "Mentions being an AI",
-};
-
-function DraftEditor({ review, onText, onAcknowledge, onStatus, onReset }: Pick<Props, "onText" | "onAcknowledge" | "onStatus" | "onReset"> & { review: ReviewState }) {
-  const check = approvalCheck(review.text);
-  const done = review.status !== "pending";
-  const concerns = review.draft.concerns ?? [];
-  const needsAck = concerns.length > 0 && !review.acknowledged;
-  const canApprove = check.canApprove && !needsAck;
-  const blockedReason = check.issues.length
-    ? "Fix the problems listed before approving."
-    : check.placeholders.length
-      ? `Fill in ${check.placeholders.join(", ")} first.`
-      : needsAck
-        ? "Tick that you've checked the AI reviewer's notes."
-        : "";
-
-  if (review.status === "rejected") {
-    return (
-      <div className="draft draft-done">
-        <span className="badge">No reply</span>
-        <span className="muted-text">You chose not to reply to this one.</span>
-        <button type="button" className="btn btn-sm btn-ghost" onClick={() => onStatus("pending")}>Undo</button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="draft">
-      <div className="draft-head">
-        <span className="draft-title">Reply</span>
-        <span className="badge">{SOURCE_LABEL[review.draft.source]}</span>
-        {review.status === "approved" && <span className="badge badge-ok">Approved</span>}
-      </div>
-
-      {review.draft.source === "none" && !review.text && <p className="draft-note">{INJECTION_NOTE}</p>}
-
-      <textarea
-        className="draft-text"
-        value={review.text}
-        readOnly={done}
-        rows={textRows(review.text)}
-        onChange={(e) => onText(e.target.value)}
-        aria-label="Reply draft"
-        placeholder={review.draft.source === "none" ? "Write the reply yourself, if one is needed." : ""}
-      />
-
-      {!done && (check.issues.length > 0 || check.placeholders.length > 0) && (
-        <ul className="draft-issues">
-          {check.issues.map((i) => (
-            <li key={i.kind} className="issue-block">
-              {i.message}
-              {i.match && <> Found: <code>{i.match}</code></>}
-            </li>
-          ))}
-          {check.placeholders.length > 0 && (
-            <li className="issue-fill">Fill in: {check.placeholders.map((p) => <code key={p}>{p}</code>)}</li>
-          )}
-        </ul>
-      )}
-
-      {!done && concerns.length > 0 && (
-        <div className="concerns">
-          <div className="concerns-head">
-            AI reviewer notes
-            {review.text !== review.original && <span> &middot; found before your edits</span>}
-          </div>
-          <ul>
-            {concerns.map((c, i) => (
-              <li key={i}>{CONCERN_LABEL[c.kind] ?? c.kind}{c.quote && <>: <q>{c.quote}</q></>}</li>
-            ))}
-          </ul>
-          <label className="ack">
-            <input type="checkbox" checked={Boolean(review.acknowledged)} onChange={(e) => onAcknowledge(e.target.checked)} />
-            I&apos;ve checked these
-          </label>
-        </div>
-      )}
-      {!done && review.draft.source === "llm" && review.draft.concerns === null && (
-        <p className="draft-unchecked">Not checked by the AI reviewer. Read it carefully.</p>
-      )}
-
-      <div className="draft-actions">
-        {done ? (
-          <button type="button" className="btn btn-sm" onClick={() => onStatus("pending")}>Edit again</button>
-        ) : (
-          <>
-            <button type="button" className="btn btn-sm btn-primary" disabled={!canApprove} title={blockedReason || "Approve this reply"}
-              onClick={() => onStatus("approved")}>
-              Approve
-            </button>
-            <button type="button" className="btn btn-sm" onClick={() => onStatus("rejected")}>Don&apos;t reply</button>
-            {review.text !== review.original && (
-              <button type="button" className="btn btn-sm btn-ghost" onClick={onReset}>Reset draft</button>
-            )}
-            {blockedReason && <span className="draft-blocked">{blockedReason}</span>}
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
+});

@@ -1,3 +1,4 @@
+import { SITE } from "@/lib/limits";
 import { GithubIcon, InboxIcon } from "./icons";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -8,12 +9,12 @@ export function Header() {
         <div className="brand">
           <div className="brand-mark"><InboxIcon width={17} height={17} /></div>
           <div style={{ minWidth: 0 }}>
-            <div className="brand-name">Inbox Helper</div>
-            <div className="brand-sub">Sort candidate messages. Review every reply.</div>
+            <div className="brand-name">{SITE.name}</div>
+            <div className="brand-sub">{SITE.tagline}</div>
           </div>
         </div>
         <div className="header-actions">
-          <a className="btn btn-ghost" href="https://github.com/Abdullah631/Inbox-Helper" target="_blank" rel="noreferrer"
+          <a className="btn btn-ghost" href={SITE.repoUrl} target="_blank" rel="noopener noreferrer"
             aria-label="Source on GitHub" title="Source on GitHub">
             <GithubIcon />
           </a>

@@ -1,17 +1,24 @@
-import { computeFlags, LOW_CONFIDENCE } from "./flags";
+import { computeFlags } from "./flags";
 import type { Intent } from "./intents";
+import { PROMPT_BODY_CHARS } from "./limits";
 import type { Classification, Message } from "./schema";
 
 // Keyword baseline. Deliberately dumb: it exists so the app works with no API
 // key, tests are deterministic, and the LLM has a number to beat.
 type Rule = { pattern: RegExp; weight: number };
 
+// "Near" means within the same line and at most 200 characters apart. The old
+// unbounded ".*" scanned the rest of the text for every match, which took 3 seconds
+// on 50 long hostile messages (Day 5 security review).
+const NEAR = "[^\\n]{0,200}";
+const near = (a: string, b: string) => new RegExp(`\\b(${a})\\b${NEAR}\\b(${b})\\b`, "i");
+
 const RULES: Record<Exclude<Intent, "other">, Rule[]> = {
   scheduling: [
     { pattern: /\breschedul\w*/i, weight: 3 },
-    { pattern: /\b(interview|call)\b.*\b(slot|time|tomorrow|monday|tuesday|wednesday|thursday|friday|next week)\b/i, weight: 2 },
+    { pattern: near("interview|call", "slot|time|tomorrow|monday|tuesday|wednesday|thursday|friday|next week"), weight: 2 },
     { pattern: /\b(availability|available|calendar|time ?slot|timezone|time zone)\b/i, weight: 2 },
-    { pattern: /\b(confirm(ing)?|move|postpone|cancel)\b.*\b(interview|call|meeting)\b/i, weight: 2 },
+    { pattern: near("confirm(?:ing)?|move|postpone|cancel", "interview|call|meeting"), weight: 2 },
     { pattern: /\b(\d{1,2}(:\d{2})?\s?(am|pm)|gmt|utc|pst|cet)\b/i, weight: 1 },
   ],
   status_check: [
@@ -35,7 +42,7 @@ const RULES: Record<Exclude<Intent, "other">, Rule[]> = {
   ],
   referral: [
     { pattern: /\brefer(ral|ring|red)?\b/i, weight: 3 },
-    { pattern: /\b(friend|colleague|former teammate|someone i know)\b.*\b(apply|role|position|fit)\b/i, weight: 2 },
+    { pattern: near("friend|colleague|former teammate|someone i know", "apply|role|position|fit"), weight: 2 },
     { pattern: /\brecommend (a|my|someone)\b/i, weight: 2 },
   ],
   question: [
@@ -45,10 +52,9 @@ const RULES: Record<Exclude<Intent, "other">, Rule[]> = {
   ],
 };
 
-export { LOW_CONFIDENCE };
-
-export function classifyFallback(msg: Message): Classification {
-  const text = `${msg.subject}\n${msg.body}`;
+export function keywordIntent(msg: Pick<Message, "subject" | "body">): { intent: Intent; confidence: number; reason: string } {
+  // Same slice the models see. Also keeps the cost of a 20,000-character message flat.
+  const text = `${msg.subject}\n${msg.body.slice(0, PROMPT_BODY_CHARS)}`;
 
   const scores = (Object.keys(RULES) as Exclude<Intent, "other">[]).map((intent) => {
     const score = RULES[intent].reduce((sum, r) => sum + (r.pattern.test(text) ? r.weight : 0), 0);
@@ -57,22 +63,16 @@ export function classifyFallback(msg: Message): Classification {
   scores.sort((a, b) => b.score - a.score);
 
   const total = scores.reduce((s, x) => s + x.score, 0);
-  const top = scores[0];
+  const [top, second] = scores;
+  if (top.score === 0) return { intent: "other", confidence: 0.3, reason: "No keyword rules matched." };
 
-  let intent: Intent = "other";
-  let confidence = 0.3;
-  let reason = "No keyword rules matched.";
+  // Share of total signal, damped when the absolute signal is weak.
+  const confidence = Number(((top.score / total) * Math.min(top.score / 4, 1)).toFixed(2));
+  const runnerUp = second.score > 0 ? `; runner-up ${second.intent} (${second.score})` : "";
+  return { intent: top.intent, confidence, reason: `Keyword score ${top.score} for ${top.intent}${runnerUp}.` };
+}
 
-  if (top.score > 0) {
-    intent = top.intent;
-    // Share of total signal, damped when the absolute signal is weak.
-    const share = top.score / total;
-    const strength = Math.min(top.score / 4, 1);
-    confidence = Number((share * strength).toFixed(2));
-    const runnerUp = scores[1].score > 0 ? `; runner-up ${scores[1].intent} (${scores[1].score})` : "";
-    reason = `Keyword score ${top.score} for ${top.intent}${runnerUp}.`;
-  }
-
-  const flags = computeFlags(msg, intent, confidence);
-  return { id: msg.id, intent, confidence, flags, reason, method: "fallback" };
+export function classifyFallback(msg: Message): Classification {
+  const { intent, confidence, reason } = keywordIntent(msg);
+  return { id: msg.id, intent, confidence, flags: computeFlags(msg, intent, confidence), reason, method: "fallback" };
 }

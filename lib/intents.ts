@@ -1,5 +1,6 @@
-// The fixed set of things a candidate can want. Every message maps to exactly
-// one of these. Messages that ask two things are a Day 4 problem.
+// The fixed set of things a candidate can want. Every message maps to exactly one of
+// these. A message that asks two things gets the riskier one (see the classify prompt);
+// supporting several groups per message is a known gap.
 export const INTENTS = [
   "scheduling",
   "status_check",

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { classifyFallback, LOW_CONFIDENCE } from "@/lib/fallback";
+import { classifyFallback } from "@/lib/fallback";
+import { LOW_CONFIDENCE } from "@/lib/limits";
 import type { Message } from "@/lib/schema";
 
 const msg = (body: string, subject = ""): Message => ({ id: "t", from: "x@y.com", subject, body });

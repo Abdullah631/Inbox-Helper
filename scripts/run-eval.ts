@@ -10,18 +10,20 @@ import { join } from "node:path";
 import { z } from "zod";
 import { classifyInbox } from "../lib/classify";
 import { evaluate } from "../lib/evaluate";
-import { getProvider } from "../lib/llm";
-import { ACTIVE_PROMPTS, loadPrompt } from "../lib/prompts";
+import { activeVersion, loadPrompt } from "../lib/prompts";
 import { LabeledMessageSchema } from "../lib/schema";
+import { cliArgs, fail, loadConfig, ROOT as root, singleProvider } from "./_cli";
 
-const root = join(__dirname, "..");
-if (existsSync(join(root, ".env.local"))) process.loadEnvFile(join(root, ".env.local"));
-
-const args = process.argv.slice(2);
-const useLlm = args.includes("--llm");
-const promptArg = args.includes("--prompt") ? args[args.indexOf("--prompt") + 1] : undefined;
-// --data data/holdout.json scores a different labeled set (Day 4: the held-out set).
-const dataFile = args.includes("--data") ? args[args.indexOf("--data") + 1] : "data/sample-inbox.json";
+const config = loadConfig();
+const { values: args } = cliArgs({
+  llm: { type: "boolean", default: false },
+  prompt: { type: "string" },
+  provider: { type: "string" },
+  // --data data/holdout.json scores a different labeled set (Day 4: the held-out set).
+  data: { type: "string", default: "data/sample-inbox.json" },
+});
+const useLlm = args.llm;
+const dataFile = args.data;
 const dataTag = dataFile.split("/").pop()!.replace(/\.json$/, "");
 
 async function main() {
@@ -35,11 +37,8 @@ async function main() {
 
   let deps = {};
   if (useLlm) {
-    // One provider per run so the score belongs to one model. --provider gemini to switch.
-    const only = args.includes("--provider") ? (args[args.indexOf("--provider") + 1] as "groq" | "gemini") : undefined;
-    const provider = getProvider(process.env, { failover: false, only });
-    if (!provider) throw new Error("--llm needs GROQ_API_KEY or GEMINI_API_KEY in .env.local");
-    deps = { provider, prompt: loadPrompt("classify", promptArg ?? ACTIVE_PROMPTS.classify) };
+    const provider = singleProvider(config, args.provider);
+    deps = { provider, prompt: loadPrompt("classify", args.prompt ?? activeVersion("classify", config)) };
   }
 
   const started = Date.now();
@@ -95,7 +94,4 @@ async function main() {
   console.log(`\nSaved ${outFile.replace(root + "/", "")} and appended to evals/history.csv`);
 }
 
-main().catch((e) => {
-  console.error(e.message);
-  process.exit(1);
-});
+main().catch(fail);

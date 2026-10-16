@@ -14,13 +14,14 @@
     "eval:drafts": "tsx scripts/run-draft-eval.ts",
     "redteam": "tsx scripts/run-redteam.ts",
     "eval:critic": "tsx scripts/run-critic-eval.ts",
-    "label": "tsx scripts/label.ts"
+    "label": "tsx scripts/label.ts",
+    "check:provider": "tsx scripts/check-provider.ts"
   },
   "dependencies": {
-    "next": "15.5.27",
+    "next": "15.5.28",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "zod": "^4.6.7"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -28,9 +29,15 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.5.27",
+    "eslint-config-next": "15.5.28",
     "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.0.4"
+  },
+  "overrides": {
+    "postcss": "8.5.30"
+  },
+  "engines": {
+    "node": ">=22.12 <25"
   }
 }

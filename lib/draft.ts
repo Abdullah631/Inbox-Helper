@@ -1,14 +1,20 @@
 import { z } from "zod";
 import { criticize, pickCriticProvider } from "./critic";
+import { looksLikeInjection } from "./flags";
 import { SENSITIVE_INTENTS } from "./intents";
-import { getProvider, getProviders, type ChatMessage, type LlmProvider } from "./llm";
-import { ACTIVE_PROMPTS, loadPrompt, type Prompt } from "./prompts";
-import { IntentSchema, type Classification, type Draft, type Message } from "./schema";
+import { BATCH_SIZES, DRAFT_REPLY_CHARS_MAX, PROMPT_BODY_CHARS } from "./limits";
+import { getProvider, getProviders, type CallOptions, type LlmProvider } from "./llm";
+import { checkIds, completeValidated, dataBlock, inBatches, parseJsonLoose, safeErrorMessage, type Parsed } from "./llm-json";
+import { loadActivePrompt, type Prompt } from "./prompts";
+import { IntentSchema, type Classification, type Draft, type Message, type Mode } from "./schema";
 import { TEMPLATES } from "./templates";
-import type { Mode } from "./classify";
 
-export const DRAFT_BATCH_SIZE = 10;
-const MAX_BODY_CHARS = 2000;
+export const DRAFT_BATCH_SIZE = BATCH_SIZES.draft;
+
+// draft v1 was shown the classifier's group and agreed with it every time (Day 3).
+// From v2 the group is hidden and the model names its own. Old prompt files are never
+// edited, so the versions that expect to see the group are listed here.
+const PROMPTS_THAT_SEE_THE_GROUP = new Set(["v1"]);
 
 export type DraftItem = { message: Message; classification: Classification };
 
@@ -25,93 +31,82 @@ const OutputSchema = z.object({
   drafts: z.array(
     z.object({
       id: z.string(),
-      // v1 is shown the classifier's group and asked if it fits (group_ok, suggested_group).
-      // From v2 the group is hidden and the model names its own ("group"), because v1
-      // just agreed with whatever it was shown.
       group_ok: z.boolean().default(true),
       suggested_group: IntentSchema.nullable().optional().catch(null),
       group: IntentSchema.optional().catch(undefined),
-      reply: z.string(),
+      reply: z.string().max(DRAFT_REPLY_CHARS_MAX),
     }),
   ),
 });
 
 // critic: null turns the AI reviewer off (tests, and evals that measure drafting alone).
-type Deps = { provider?: LlmProvider | null; prompt?: Prompt; critic?: LlmProvider | null };
+type Deps = { provider?: LlmProvider | null; prompt?: Prompt; critic?: LlmProvider | null; signal?: AbortSignal };
 
-export async function draftReplies(items: DraftItem[], mode: Mode, deps: Deps = {}): Promise<DraftResult> {
-  const provider = deps.provider === undefined ? getProvider() : deps.provider;
-  const useLlm = mode !== "keyword" && Boolean(provider);
-  const drafts = new Map<string, Draft>();
-  const warnings: string[] = [];
-
-  // Injection attempts never go back to the model. A person writes that reply.
-  const toDraft: DraftItem[] = [];
-  for (const item of items) {
-    if (item.classification.flags.includes("possible_injection")) {
-      drafts.set(item.message.id, { id: item.message.id, reply: "", source: "none", dispute: null, concerns: null });
-    } else if (!useLlm) {
-      drafts.set(item.message.id, templateDraft(item));
-    } else {
-      toDraft.push(item);
-    }
-  }
-
-  let prompt: Prompt | undefined;
-  if (useLlm && toDraft.length) {
-    prompt = deps.prompt ?? loadPrompt("draft", process.env.DRAFT_PROMPT_VERSION || ACTIVE_PROMPTS.draft);
-    for (let i = 0; i < toDraft.length; i += DRAFT_BATCH_SIZE) {
-      const batch = toDraft.slice(i, i + DRAFT_BATCH_SIZE);
-      try {
-        for (const d of await draftBatch(batch, provider!, prompt)) drafts.set(d.id, d);
-      } catch (e) {
-        warnings.push(`Drafts for ${batch.length} messages: ${(e as Error).message} Used templates instead.`);
-        for (const item of batch) drafts.set(item.message.id, templateDraft(item));
-      }
-    }
-  }
-
-  // Second model reads the AI drafts. If it fails, drafts still go out, marked unchecked.
-  let reviewerModel: string | undefined;
-  const llmDrafts = [...drafts.values()].filter((d) => d.source === "llm");
-  const critic = deps.critic === undefined ? pickCriticProvider(provider, getProviders()) : deps.critic;
-  if (critic && llmDrafts.length) {
-    try {
-      const concerns = await criticize(llmDrafts.map((d) => ({ id: d.id, reply: d.reply })), critic);
-      for (const d of llmDrafts) drafts.set(d.id, { ...d, concerns: concerns.get(d.id) ?? null });
-      reviewerModel = critic.model;
-    } catch (e) {
-      warnings.push(`AI review of drafts didn't run (${(e as Error).message}). Read these drafts extra carefully.`);
-    }
-  }
-
-  return {
-    reviewerModel,
-    drafts: items.map((i) => drafts.get(i.message.id)!),
-    method: useLlm ? "llm" : "template",
-    model: !useLlm ? undefined : [...drafts.values()].some((d) => d.source === "llm") ? provider!.model : "no model answered",
-    promptVersion: prompt?.version,
-    warnings,
-  };
-}
+const noDraft = (id: string): Draft => ({ id, reply: "", source: "none", dispute: null, concerns: null });
 
 export function templateDraft(item: DraftItem): Draft {
   return { id: item.message.id, reply: TEMPLATES[item.classification.intent], source: "template", dispute: null, concerns: null };
 }
 
-async function draftBatch(batch: DraftItem[], provider: LlmProvider, prompt: Prompt): Promise<Draft[]> {
-  const chat: ChatMessage[] = [
-    { role: "system", content: prompt.text },
-    { role: "user", content: renderDraftBatch(batch, prompt.version === "v1") },
-  ];
-  let lastError = "";
-  for (let attempt = 0; attempt < 2; attempt++) {
-    if (attempt > 0) chat.push({ role: "user", content: `Your last reply was invalid: ${lastError}. Reply again with valid JSON only.` });
-    const parsed = parseDraftOutput(await provider.completeJson(chat), batch);
-    if (parsed.ok) return parsed.value;
-    lastError = parsed.error;
+export async function draftReplies(items: DraftItem[], mode: Mode, deps: Deps = {}): Promise<DraftResult> {
+  const provider = deps.provider === undefined ? getProvider() : deps.provider;
+  const useLlm = mode !== "keyword" && Boolean(provider);
+  const opts: CallOptions = { signal: deps.signal };
+  const drafts = new Map<string, Draft>();
+  const warnings: string[] = [];
+
+  // Injection attempts never go to the model. A person writes that reply. Checked
+  // here as well as trusting the flag, because the API is public and a caller can
+  // send a classification without it (Day 5 review).
+  const toDraft: DraftItem[] = [];
+  for (const item of items) {
+    const id = item.message.id;
+    if (item.classification.flags.includes("possible_injection") || looksLikeInjection(item.message)) drafts.set(id, noDraft(id));
+    else if (!useLlm) drafts.set(id, templateDraft(item));
+    else toDraft.push(item);
   }
-  throw new Error(`Model output invalid twice (${lastError}).`);
+
+  let prompt: Prompt | undefined;
+  if (useLlm && toDraft.length) {
+    const p = deps.prompt ?? loadActivePrompt("draft");
+    prompt = p;
+    const written = await inBatches(
+      toDraft,
+      DRAFT_BATCH_SIZE,
+      (batch) => draftBatch(batch, provider!, p, opts),
+      (batch, _i, e) => {
+        warnings.push(`Drafts for ${batch.length} messages: ${safeErrorMessage(e)} Used templates instead.`);
+        return batch.map(templateDraft);
+      },
+    );
+    for (const d of written) drafts.set(d.id, d);
+  }
+
+  // A second model reads the AI drafts. If it fails, drafts still go out, marked unchecked.
+  let reviewerModel: string | undefined;
+  const llmDrafts = [...drafts.values()].filter((d) => d.source === "llm");
+  const critic = deps.critic === undefined ? pickCriticProvider(provider, getProviders()) : deps.critic;
+  if (critic && llmDrafts.length) {
+    const review = await criticize(llmDrafts.map((d) => ({ id: d.id, reply: d.reply })), critic, undefined, opts);
+    for (const d of llmDrafts) drafts.set(d.id, { ...d, concerns: review.concerns.get(d.id) ?? null });
+    warnings.push(...review.warnings);
+    if ([...review.concerns.values()].some((c) => c !== null)) reviewerModel = critic.model;
+  }
+
+  const anyLlm = llmDrafts.length > 0;
+  return {
+    reviewerModel,
+    drafts: items.map((i) => drafts.get(i.message.id)!),
+    method: useLlm ? "llm" : "template",
+    model: !useLlm ? undefined : anyLlm ? provider!.model : "no model answered",
+    promptVersion: prompt?.version,
+    warnings,
+  };
+}
+
+function draftBatch(batch: DraftItem[], provider: LlmProvider, prompt: Prompt, opts: CallOptions): Promise<Draft[]> {
+  const user = renderDraftBatch(batch, PROMPTS_THAT_SEE_THE_GROUP.has(prompt.version));
+  return completeValidated(provider, prompt.text, user, (raw) => parseDraftOutput(raw, batch), opts);
 }
 
 export function renderDraftBatch(batch: DraftItem[], showGroup: boolean): string {
@@ -119,39 +114,32 @@ export function renderDraftBatch(batch: DraftItem[], showGroup: boolean): string
     id: m.id,
     ...(showGroup ? { group: c.intent } : {}),
     subject: m.subject,
-    body: m.body.slice(0, MAX_BODY_CHARS),
+    body: m.body.slice(0, PROMPT_BODY_CHARS),
   }));
-  return `Write a reply draft for each of these ${batch.length} messages.\n<messages>\n${JSON.stringify(data, null, 2)}\n</messages>`;
+  return `Write a reply draft for each of these ${batch.length} messages.\n${dataBlock("messages", data)}`;
 }
 
-type Parsed = { ok: true; value: Draft[] } | { ok: false; error: string };
-
-export function parseDraftOutput(raw: string, batch: DraftItem[]): Parsed {
-  let json: unknown;
-  try {
-    json = JSON.parse(raw.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""));
-  } catch {
-    return { ok: false, error: "not valid JSON" };
-  }
-  const out = OutputSchema.safeParse(json);
+export function parseDraftOutput(raw: string, batch: DraftItem[]): Parsed<Draft[]> {
+  const json = parseJsonLoose(raw);
+  if (!json.ok) return json;
+  const out = OutputSchema.safeParse(json.value);
   if (!out.success) {
     const issue = out.error.issues[0];
     return { ok: false, error: `${issue.path.join(".")}: ${issue.message}` };
   }
+  const idProblem = checkIds(out.data.drafts.map((d) => d.id), batch.map((b) => b.message.id));
+  if (idProblem) return { ok: false, error: idProblem };
 
   const byId = new Map(out.data.drafts.map((d) => [d.id, d]));
-  const missing = batch.filter((b) => !byId.has(b.message.id)).map((b) => b.message.id);
-  if (missing.length) return { ok: false, error: `missing drafts for ids ${missing.join(", ")}` };
-
   return {
     ok: true,
     value: batch.map(({ message, classification }) => {
       const d = byId.get(message.id)!;
       const suggested = d.group ?? (d.group_ok ? undefined : d.suggested_group ?? undefined);
-      // A dispute may never pull a message out of a group that needs a person (found on
-      // Day 3: m53 asks about salary and a reschedule, and the drafting step suggested
+      // A dispute may never pull a message out of a group that needs a person (Day 3:
+      // m53 asks about salary and a reschedule, and the drafting step suggested
       // Scheduling, which would have dropped the needs_human flag).
-      const unsafe = SENSITIVE_INTENTS.has(classification.intent) && suggested && !SENSITIVE_INTENTS.has(suggested);
+      const unsafe = SENSITIVE_INTENTS.has(classification.intent) && suggested !== undefined && !SENSITIVE_INTENTS.has(suggested);
       return {
         id: message.id,
         reply: d.reply.trim(),

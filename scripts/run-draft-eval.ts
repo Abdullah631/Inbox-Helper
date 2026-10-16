@@ -15,21 +15,21 @@ import { classifyInbox } from "../lib/classify";
 import { draftReplies } from "../lib/draft";
 import { LOW_CONFIDENCE } from "../lib/flags";
 import { checkDraft, wordCount, type IssueKind } from "../lib/guardrails";
-import { getProvider } from "../lib/llm";
-import { ACTIVE_PROMPTS, loadPrompt } from "../lib/prompts";
+import { activeVersion, loadPrompt } from "../lib/prompts";
 import { ClassificationSchema, LabeledMessageSchema, type Classification } from "../lib/schema";
+import { cliArgs, fail, loadConfig, ROOT as root, singleProvider } from "./_cli";
 
-const root = join(__dirname, "..");
-if (existsSync(join(root, ".env.local"))) process.loadEnvFile(join(root, ".env.local"));
-
-const args = process.argv.slice(2);
-const arg = (name: string) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined);
-const dataFile = arg("--data") ?? "data/sample-inbox.json";
+const config = loadConfig();
+const { values: args } = cliArgs({
+  from: { type: "string" },
+  prompt: { type: "string" },
+  provider: { type: "string" },
+  data: { type: "string", default: "data/sample-inbox.json" },
+});
+const dataFile = args.data;
 
 async function main() {
-  // One provider per run so the score belongs to one model. --provider gemini to switch.
-    const provider = getProvider(process.env, { failover: false, only: arg("--provider") as "groq" | "gemini" | undefined });
-  if (!provider) throw new Error("Needs GROQ_API_KEY or GEMINI_API_KEY in .env.local");
+  const provider = singleProvider(config, args.provider);
 
   const dataset = z.array(LabeledMessageSchema).parse(JSON.parse(readFileSync(join(root, dataFile), "utf8")));
   const messages = dataset.map(({ id, from, subject, body }) => ({ id, from, subject, body }));
@@ -37,7 +37,7 @@ async function main() {
 
   let classifications: Classification[];
   let classifiedBy: string;
-  const from = arg("--from");
+  const from = args.from;
   if (from) {
     const saved = JSON.parse(readFileSync(join(root, from), "utf8"));
     classifications = z.array(ClassificationSchema).parse(saved.classifications);
@@ -48,9 +48,15 @@ async function main() {
     classifiedBy = `live, ${r.model} prompt ${r.promptVersion}`;
   }
 
-  const prompt = loadPrompt("draft", arg("--prompt") ?? ACTIVE_PROMPTS.draft);
+  const prompt = loadPrompt("draft", args.prompt ?? activeVersion("draft", config));
   const started = Date.now();
-  const items = messages.map((message, i) => ({ message, classification: classifications[i] }));
+  // Paired by id, not position: a --from file may list classifications in another order.
+  const classById = new Map(classifications.map((c) => [c.id, c]));
+  const items = messages.map((message) => {
+    const classification = classById.get(message.id);
+    if (!classification) throw new Error(`No classification for ${message.id} in ${from ?? "the live run"}`);
+    return { message, classification };
+  });
   // critic: null keeps this eval about drafting alone (the reviewer has its own eval).
   const result = await draftReplies(items, "llm", { provider, prompt, critic: null });
   const seconds = ((Date.now() - started) / 1000).toFixed(1);
@@ -133,7 +139,4 @@ async function main() {
   console.log(`\nSaved results, evals/results/drafts-latest.md and a line in evals/drafts-history.csv`);
 }
 
-main().catch((e) => {
-  console.error(e.message);
-  process.exit(1);
-});
+main().catch(fail);

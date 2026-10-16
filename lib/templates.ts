@@ -1,7 +1,8 @@
 import type { Intent } from "./intents";
 
-// Used when there's no LLM, or the LLM fails, or the message looks like an
-// injection attempt. Every template has to pass the guardrails (there's a test).
+// Used when there's no LLM or the LLM fails. Messages that look like an injection
+// attempt get no reply at all (see INJECTION_NOTE). Every template has to pass the
+// guardrails (there's a test).
 // Placeholders in [BRACKETS] are filled in by the recruiter before sending.
 export const TEMPLATES: Record<Intent, string> = {
   scheduling:

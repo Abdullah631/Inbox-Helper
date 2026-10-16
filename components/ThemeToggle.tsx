@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { storage } from "@/lib/client/browser";
+import { STORAGE_KEYS } from "@/lib/limits";
 import { MonitorIcon, MoonIcon, SunIcon } from "./icons";
 import { Segmented } from "./Segmented";
 
 type Theme = "system" | "light" | "dark";
-const KEY = "inbox-helper-theme";
+const KEY = STORAGE_KEYS.theme;
 
 // Runs in <head> before paint so a saved theme doesn't flash the wrong colors.
 export const themeInitScript = `try{var t=localStorage.getItem("${KEY}");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
@@ -19,19 +21,15 @@ export function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("system");
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(KEY);
-      if (saved === "light" || saved === "dark") setTheme(saved);
-    } catch {}
+    const saved = storage.get(KEY);
+    if (saved === "light" || saved === "dark") setTheme(saved);
   }, []);
 
   function change(t: Theme) {
     setTheme(t);
     apply(t);
-    try {
-      if (t === "system") localStorage.removeItem(KEY);
-      else localStorage.setItem(KEY, t);
-    } catch {}
+    if (t === "system") storage.remove(KEY);
+    else storage.set(KEY, t);
   }
 
   return (

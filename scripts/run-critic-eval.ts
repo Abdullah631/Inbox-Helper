@@ -1,32 +1,36 @@
-// Usage: npm run eval:critic [-- --provider gemini|groq]
+// Usage: npm run eval:critic [-- --provider gemini|groq] [--prompt v1] [--drafts <file>]
 // Measures the AI reviewer two ways:
 //   1. red-team drafts (both rounds): caught by regex, by the reviewer, by either
 //   2. 58 real drafts from a saved run: how many get concerns (false alarm rate),
 //      printed so a person can judge each one
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { criticize, pickCriticProvider } from "../lib/critic";
-import { loadPrompt } from "../lib/prompts";
+import { criticize, type Concern } from "../lib/critic";
 import { checkDraft } from "../lib/guardrails";
-import { getProvider, getProviders } from "../lib/llm";
+import { activeVersion, loadPrompt } from "../lib/prompts";
+import { cliArgs, fail, loadConfig, ROOT as root, singleProvider } from "./_cli";
 
-const root = join(__dirname, "..");
-if (existsSync(join(root, ".env.local"))) process.loadEnvFile(join(root, ".env.local"));
-const args = process.argv.slice(2);
-const promptVersion = args.includes("--prompt") ? args[args.indexOf("--prompt") + 1] : "v1";
-// --drafts <file> picks which saved draft run to check for false alarms.
-const draftsFile = args.includes("--drafts") ? args[args.indexOf("--drafts") + 1] : undefined;
-const only = args.includes("--provider") ? (args[args.indexOf("--provider") + 1] as "groq" | "gemini") : undefined;
+const config = loadConfig();
+const { values: args } = cliArgs({
+  // Defaults to the version the app uses. It used to default to v1 while the app ran v2.
+  prompt: { type: "string" },
+  // --drafts <file> picks which saved draft run to check for false alarms.
+  drafts: { type: "string" },
+  // Pick the model that did NOT write the drafts (the saved drafts came from Groq).
+  provider: { type: "string", default: "gemini" },
+});
 
 async function main() {
-  const provider = only ? getProvider(process.env, { only, failover: false }) : pickCriticProvider(null, getProviders());
-  if (!provider) throw new Error("Needs an API key in .env.local");
-  const prompt = loadPrompt("critic", promptVersion);
+  // One provider, no failover, so the score belongs to one model.
+  const provider = singleProvider(config, args.provider);
+  const prompt = loadPrompt("critic", args.prompt ?? activeVersion("critic", config));
   console.log(`Reviewer model: ${provider.model}, critic prompt ${prompt.version}\n`);
 
   const red = JSON.parse(readFileSync(join(root, "data/redteam.json"), "utf8")).drafts as
     { id: string; text: string; should_block: boolean; attack: string; round: number }[];
-  const concerns = await criticize(red.map((d) => ({ id: d.id, reply: d.text })), provider, prompt);
+  const redReview = await criticize(red.map((d) => ({ id: d.id, reply: d.text })), provider, prompt);
+  if (redReview.warnings.length) throw new Error(`Invalid run, some batches weren't reviewed: ${redReview.warnings.join(" ")}`);
+  const concerns = redReview.concerns as Map<string, Concern[]>;
 
   for (const round of [1, 2]) {
     const cases = red.filter((d) => d.round === round);
@@ -41,10 +45,12 @@ async function main() {
     for (const d of falseAlarms) console.log(`   false alarm: ${d.id} ${JSON.stringify(concerns.get(d.id))}`);
   }
 
-  const file = draftsFile ?? readdirSync(join(root, "evals/results")).filter((f) => /^drafts-v2-.*\.json$/.test(f)).sort().at(-1)!;
+  const file = args.drafts ?? readdirSync(join(root, "evals/results")).filter((f) => /^drafts-v2-.*\.json$/.test(f)).sort().at(-1)!;
   const real = (JSON.parse(readFileSync(join(root, "evals/results", file.replace(/^evals\/results\//, "")), "utf8")).drafts as { id: string; reply: string; source: string }[])
     .filter((d) => d.source === "llm");
-  const realConcerns = await criticize(real.map((d) => ({ id: d.id, reply: d.reply })), provider, prompt);
+  const realReview = await criticize(real.map((d) => ({ id: d.id, reply: d.reply })), provider, prompt);
+  if (realReview.warnings.length) throw new Error(`Invalid run, some batches weren't reviewed: ${realReview.warnings.join(" ")}`);
+  const realConcerns = realReview.concerns as Map<string, Concern[]>;
   const flagged = real.filter((d) => realConcerns.get(d.id)!.length > 0);
   const regexFlagged = real.filter((d) => checkDraft(d.reply).length > 0);
   console.log(`\nReal drafts (${file}): reviewer raised concerns on ${flagged.length} of ${real.length}; regex blocks ${regexFlagged.length}.`);
@@ -55,7 +61,4 @@ async function main() {
   }
 }
 
-main().catch((e) => {
-  console.error(e.message);
-  process.exit(1);
-});
+main().catch(fail);

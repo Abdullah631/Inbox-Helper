@@ -4,13 +4,19 @@
 // Anything inside [SQUARE_BRACKETS] is a placeholder the recruiter fills in, so
 // it's ignored. "Let's meet [INTERVIEW_SLOT]" is fine. "Let's meet Monday at 3pm" is not.
 
+import { DRAFT_MAX_WORDS } from "./limits";
+import { hasInvisibleChars, hasMixedScript, skeleton } from "./text";
+
 export type IssueKind =
   | "money" | "offer" | "date" | "decision" | "claims_action" | "company_fact"
   | "contact" | "hidden_chars" | "ai_leak" | "too_long" | "empty";
 
 export type Issue = { kind: IssueKind; message: string; match?: string };
 
-export const MAX_WORDS = 120;
+export const MAX_WORDS = DRAFT_MAX_WORDS;
+
+// [NAME], [INTERVIEW_SLOT] and so on. Uppercase letters, digits, underscores, spaces.
+const PLACEHOLDER = /\[[A-Z0-9_ ]+\]/g;
 
 const RULES: { kind: IssueKind; message: string; patterns: RegExp[] }[] = [
   {
@@ -103,33 +109,17 @@ const RULES: { kind: IssueKind; message: string; patterns: RegExp[] }[] = [
   },
 ];
 
-// Models often write curly quotes. Without this, "You\u2019re hired" slipped past
-// the offer check (found on Day 3 from real drafts).
-// Day 4: zero-width characters ("h\u200Bired") and compatibility forms got past every
-// rule, so text is NFKC-normalized and stripped of them before matching.
-const ZERO_WIDTH = /[\u200B-\u200D\u2060\uFEFF\u00AD]/g;
-const HAS_ZERO_WIDTH = /[\u200B-\u200D\u2060\uFEFF\u00AD]/;
-
-function normalize(text: string): string {
-  return text
-    .normalize("NFKC")
-    .replace(ZERO_WIDTH, "")
-    .replace(/[\u2018\u2019\u02BC]/g, "'")
-    .replace(/[\u201C\u201D]/g, '"');
-}
-
-// Latin words with a Cyrillic or Greek letter inside ("h\u0456red") look normal but
-// dodge every pattern. Real replies don't contain them, so flag them.
-function hasHiddenChars(text: string): boolean {
-  return HAS_ZERO_WIDTH.test(text) || /[a-z][\u0370-\u03FF\u0400-\u04FF]|[\u0370-\u03FF\u0400-\u04FF][a-z]/i.test(text);
-}
-
+// Matching runs on skeleton text (lib/text.ts): NFKC, invisible characters removed,
+// curly quotes plain, look-alike letters mapped to Latin. Day 3 found curly
+// apostrophes slipping past, Day 4 zero-width and Cyrillic letters, Day 5 Unicode
+// tag characters. The hidden_chars issue still flags such text, because a reply
+// containing them should be retyped, not just tolerated.
 export function stripPlaceholders(text: string): string {
-  return normalize(text).replace(/\[[A-Z0-9_ ]+\]/g, " ");
+  return skeleton(text).replace(PLACEHOLDER, " ");
 }
 
 export function placeholdersIn(text: string): string[] {
-  return [...new Set(text.match(/\[[A-Z0-9_ ]+\]/g) ?? [])];
+  return [...new Set(text.match(PLACEHOLDER) ?? [])];
 }
 
 export function wordCount(text: string): number {
@@ -141,7 +131,7 @@ export function checkDraft(text: string): Issue[] {
 
   const plain = stripPlaceholders(text);
   const issues: Issue[] = [];
-  if (hasHiddenChars(text)) {
+  if (hasInvisibleChars(text) || hasMixedScript(text)) {
     issues.push({ kind: "hidden_chars", message: "Has invisible or look-alike characters. Retype the reply in plain text." });
   }
   for (const rule of RULES) {

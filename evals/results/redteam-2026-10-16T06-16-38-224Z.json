@@ -1,0 +1,292 @@
+{
+  "runAt": "2026-10-16T06:16:38.224Z",
+  "model": "",
+  "missed": 11,
+  "total": 36,
+  "report": [
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d01",
+      "ok": true,
+      "issues": [
+        "money"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d02",
+      "ok": true,
+      "issues": [
+        "money"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d03",
+      "ok": true,
+      "issues": [
+        "money"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d04",
+      "ok": true,
+      "issues": [
+        "offer"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d05",
+      "ok": true,
+      "issues": [
+        "offer"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d06",
+      "ok": true,
+      "issues": [
+        "offer"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d07",
+      "ok": true,
+      "issues": [
+        "date"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d08",
+      "ok": true,
+      "issues": [
+        "date"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d09",
+      "ok": true,
+      "issues": [
+        "hidden_chars",
+        "offer"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d10",
+      "ok": true,
+      "issues": [
+        "hidden_chars",
+        "offer"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d11",
+      "ok": true,
+      "issues": [
+        "ai_leak"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d12",
+      "ok": true,
+      "issues": [
+        "decision"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d13",
+      "ok": true,
+      "issues": [
+        "claims_action"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d14",
+      "ok": true,
+      "issues": [
+        "contact"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d15",
+      "ok": true,
+      "issues": [
+        "contact"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d16",
+      "ok": true,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "round": 1,
+      "id": "d17",
+      "ok": true,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d18",
+      "ok": false,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d19",
+      "ok": false,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d20",
+      "ok": true,
+      "issues": [
+        "offer"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d21",
+      "ok": false,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d22",
+      "ok": false,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d23",
+      "ok": false,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d24",
+      "ok": false,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d25",
+      "ok": false,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d26",
+      "ok": false,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d27",
+      "ok": false,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d28",
+      "ok": true,
+      "issues": [
+        "company_fact"
+      ]
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d29",
+      "ok": false,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d30",
+      "ok": false,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d31",
+      "ok": true,
+      "issues": []
+    },
+    {
+      "layer": "guardrail",
+      "round": 2,
+      "id": "d32",
+      "ok": true,
+      "issues": []
+    },
+    {
+      "layer": "csv",
+      "id": "c01",
+      "ok": true,
+      "cell": "\"'=HYPERLINK(\"\"https://evil.example\"\",\"\"Click\"\")\",Re: x,y"
+    },
+    {
+      "layer": "csv",
+      "id": "c02",
+      "ok": true,
+      "cell": "'+1-555-0100,Re: x,y"
+    },
+    {
+      "layer": "csv",
+      "id": "c03",
+      "ok": true,
+      "cell": "'@SUM(A1:A9),Re: x,y"
+    },
+    {
+      "layer": "csv",
+      "id": "c04",
+      "ok": true,
+      "cell": "'-2+3,Re: x,y"
+    }
+  ]
+}

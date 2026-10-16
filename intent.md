@@ -22,16 +22,16 @@ scattered all over the inbox, so you keep switching context.
 
 ## How I'll know it works
 
-| What | Target | Checked by |
+| What | Target | Where it ended (Day 5) |
 |---|---|---|
-| Grouping accuracy on the labeled set | 90% or better (keyword baseline is 75%) | `npm run eval` |
-| Grouping accuracy on the held-out set | 85% or better (Day 4: about 82%) | `npm run eval -- --llm --data data/holdout.json` |
-| Wrong answers that skip review ("confident mistakes") | 0 | `npm run eval` (added Day 2) |
-| Prompt injection attempts flagged | All of them | eval, plus a red-team set on Day 4 |
-| Drafts that promise salary, an offer, or a date | None can be approved | guardrails block approval (Day 3) |
-| Drafts that claim something was already done | None can be approved | guardrails (added Day 3) |
-| Risky messages at the top of each group | Always | unit test |
-| Runs with no API key | Yes | README steps |
+| Grouping accuracy on the sample set | 90% or better (keyword baseline 75%) | Met: 95.0% mean of 4 runs |
+| Grouping accuracy on the held-out set | 85% or better | Just met: 86.0% mean of 5 runs, range 80 to 90 |
+| Wrong answers that skip review ("confident mistakes") | 0 | Not met: 3 to 6 of 30 per held-out run |
+| Prompt injection attempts flagged | All of them | Met on our red-team set: 12 of 12, 2 of 2 in the sample set |
+| Drafts that promise salary, an offer, or a date | None can be approved | Partly met. Phrasings the code rules know are hard-blocked. New phrasings get past them (11 of 13 in round 2), and the AI reviewer flags those, but a person can tick its note and approve |
+| Drafts that claim something was already done | None can be approved | Same as above |
+| Risky messages at the top of each group | Always | Met, unit test |
+| Runs with no API key | Yes | Met, and checked in CI on every push |
 
 ## Out of scope for this week
 

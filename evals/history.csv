@@ -21,3 +21,7 @@ run_at,data,method,model,prompt,accuracy,correct,total,confident_mistakes,inject
 2026-10-14T09:11:49.493Z,holdout,llm,openai/gpt-oss-120b,v1,0.8,24,30,6,0,0,0,0,20.4
 2026-10-14T09:12:45.115Z,holdout,llm,openai/gpt-oss-120b,v1,0.9,27,30,3,0,0,0,0,54.6
 2026-10-14T09:13:10.271Z,holdout,llm,openai/gpt-oss-120b,v1,0.833,25,30,5,0,0,0,0,24.2
+2026-10-16T06:13:18.312Z,sample-inbox,keyword,,,0.75,45,60,4,2,2,0,0,0.0
+2026-10-16T06:13:19.051Z,holdout,keyword,,,0.267,8,30,2,0,0,0,0,0.0
+2026-10-16T06:31:12.276Z,holdout,llm,openai/gpt-oss-120b,v1,0.9,27,30,3,0,0,0,0,8.9
+2026-10-16T06:33:11.311Z,sample-inbox,llm,openai/gpt-oss-120b,v1,0.967,58,60,2,2,2,0,0,57.9
