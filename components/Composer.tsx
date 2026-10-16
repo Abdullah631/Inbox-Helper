@@ -29,6 +29,9 @@ export function Composer(p: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
   const busy = p.stage !== null;
   const canRun = p.parsed.messages.length > 0 && !busy;
+  // Shown as you type, so "1 problem" always comes with the reason (Day 5: it didn't,
+  // and an upload with 0 usable messages left no way to find out why).
+  const problems = p.parsed.errors.filter((e) => e !== "Input is empty.");
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -82,6 +85,13 @@ export function Composer(p: Props) {
         placeholder={"Paste JSON, CSV with a body column, or plain text with --- between messages.\n\nHi, any update on my application?\n---\nCould we move Thursday's interview to Friday?"}
       />
 
+      {problems.length > 0 && (
+        <ul className="input-problems" aria-live="polite">
+          {problems.slice(0, MAX_SHOWN).map((e, i) => <li key={i}>{e}</li>)}
+          {problems.length > MAX_SHOWN && <li>and {problems.length - MAX_SHOWN} more</li>}
+        </ul>
+      )}
+
       {p.stage && (
         <div className="progress" role="progressbar" aria-label={p.stage.label} aria-valuenow={p.stage.done} aria-valuemin={0} aria-valuemax={p.stage.total}>
           <div style={{ width: `${(p.stage.done / Math.max(1, p.stage.total)) * 100}%` }} />
@@ -116,6 +126,8 @@ export function Composer(p: Props) {
     </section>
   );
 }
+
+const MAX_SHOWN = 5;
 
 function InputStatus({ parsed }: { parsed: ParseResult }) {
   if (parsed.format === "empty") return null;

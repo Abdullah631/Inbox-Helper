@@ -65,8 +65,12 @@ function parseJson(text: string): unknown[] {
   } catch (e) {
     throw new ParseError(`Invalid JSON: ${(e as Error).message}`);
   }
-  if (!Array.isArray(data)) throw new ParseError("JSON must be an array of messages, like [{\"body\": \"...\"}].");
-  return data;
+  if (Array.isArray(data)) return data;
+  // Also accept { "messages": [...] }, a common export shape (and the one data/redteam.json uses).
+  if (data && typeof data === "object" && Array.isArray((data as { messages?: unknown }).messages)) {
+    return (data as { messages: unknown[] }).messages;
+  }
+  throw new ParseError('JSON must be an array of messages, like [{"body": "..."}], or an object with a "messages" array.');
 }
 
 function splitText(text: string): unknown[] {
