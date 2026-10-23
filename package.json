@@ -19,8 +19,8 @@
   },
   "dependencies": {
     "next": "15.5.28",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "zod": "4.6.7"
   },
   "devDependencies": {
@@ -32,7 +32,7 @@
     "eslint-config-next": "15.5.28",
     "tsx": "^4.23.15",
     "typescript": "^5",
-    "vitest": "^5.0.4"
+    "vitest": "^5.0.5"
   },
   "overrides": {
     "postcss": "8.5.30"
