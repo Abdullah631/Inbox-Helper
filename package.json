@@ -18,7 +18,7 @@
     "check:provider": "tsx scripts/check-provider.ts"
   },
   "dependencies": {
-    "next": "15.5.28",
+    "next": "16.4.2",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zod": "4.6.7"
